@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Dettaglio consegna{% endblock %}
+
+{% block content %}
+<h2>📄 Dettaglio consegna</h2>
+
+<div class="dettaglio-card">
+    <p><strong>ID:</strong> {{ consegna.id }}</p>
+    <p><strong>Stato:</strong> {{ consegna.stato }}</p>
+    <p><strong>Data creazione:</strong> {{ consegna.data_creazione }}</p>
+    
+    <h3>Commerciante</h3>
+    <p><strong>Nome:</strong> {{ consegna.comm_nome }}</p>
+    <p><strong>Telefono:</strong> {{ consegna.comm_telefono }}</p>
+    <p><strong>Indirizzo partenza:</strong> {{ consegna.comm_indirizzo_partenza }}</p>
+    
+    <h3>Cliente destinatario</h3>
+    <p><strong>Nome:</strong> {{ consegna.cliente_nome }}</p>
+    <p><strong>Telefono:</strong> {{ consegna.cliente_telefono }}</p>
+    <p><strong>Indirizzo consegna:</strong> {{ consegna.cliente_indirizzo_consegna }}</p>
+    <p><strong>Piano:</strong> {{ consegna.cliente_piano }}</p>
+    <p><strong>Note:</strong> {{ consegna.cliente_note or '-' }}</p>
+    
+    <h3>💰 Preventivo</h3>
+    <p><strong>Km:</strong> {{ consegna.km }}</p>
+    <p><strong>Supplemento piano:</strong> {{ consegna.supplemento_piano }}€ x {{ consegna.cliente_piano }} = {{ consegna.cliente_piano * consegna.supplemento_piano }}€</p>
+    <p><strong>Supplemento fragile:</strong> {{ consegna.supplemento_fragile }}€</p>
+    <p><strong>Totale:</strong> <big>{{ consegna.totale_euro }}€</big></p>
+    
+    <a href="{{ url_for('index') }}" class="btn">← Torna alla lista</a>
+</div>
+{% endblock %}

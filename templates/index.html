@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Lista consegne{% endblock %}
+
+{% block content %}
+<h2>📋 Consegne registrate</h2>
+
+{% if consegne %}
+    <table class="tabella">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Indirizzo consegna</th>
+                <th>Km</th>
+                <th>Totale €</th>
+                <th>Stato</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in consegne %}
+            <tr>
+                <td>{{ c.id[:8] }}...</td>
+                <td>{{ c.cliente_nome }}</td>
+                <td>{{ c.cliente_indirizzo_consegna[:30] }}...</td>
+                <td>{{ c.km }}</td>
+                <td><strong>{{ c.totale_euro }}€</strong></td>
+                <td>{{ c.stato }}</td>
+                <td>
+                    <a href="{{ url_for('dettaglio_consegna', id=c.id) }}">👁️ Dettaglio</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Nessuna consegna ancora registrata.</p>
+    <a href="{{ url_for('nuova_consegna') }}" class="btn">Crea la prima consegna</a>
+{% endif %}
+{% endblock %}
