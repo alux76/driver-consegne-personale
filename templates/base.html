@@ -54,11 +54,11 @@
         {% block content %}{% endblock %}
     </div>
     
-    <!-- Service Worker per PWA (nella root) -->
+    <!-- Service Worker per PWA -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js')
+                navigator.serviceWorker.register('/static/sw.js')
                     .then(function(reg) {
                         console.log('✅ Service Worker registrato', reg);
                     })
