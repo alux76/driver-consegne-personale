@@ -52,6 +52,17 @@ def invia_notifica_telegram(messaggio, titolo="Driver Consegne"):
         except:
             pass
 
+# ========== FORCE REBUILD DATABASE ==========
+@app.route('/force_rebuild')
+def force_rebuild():
+    """Cancella fisicamente il database e lo ricrea"""
+    db_path = 'instance/consegne.db'
+    if os.path.exists(db_path):
+        os.remove(db_path)
+        print(f"🗑️ Database {db_path} cancellato")
+    db.create_all()
+    return "Database ricreato da zero! La colonna supplemento_extra è stata aggiunta."
+
 # ========== RESET DATABASE ==========
 @app.route('/reset_db')
 def reset_db():
