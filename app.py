@@ -39,7 +39,7 @@ def invia_notifica_telegram(messaggio, titolo="Driver Consegne"):
         data["chat_id"] = chat_id_driver
         try:
             requests.post(url, data=data)
-            print(f"📢 Notifica inviata a te (driver)")
+            print("📢 Notifica inviata a te (driver)")
         except:
             pass
     
@@ -48,9 +48,17 @@ def invia_notifica_telegram(messaggio, titolo="Driver Consegne"):
         data["chat_id"] = chat_id_moglie
         try:
             requests.post(url, data=data)
-            print(f"📢 Notifica inviata a tua moglie")
+            print("📢 Notifica inviata a tua moglie")
         except:
             pass
+
+# ========== RESET DATABASE ==========
+@app.route('/reset_db')
+def reset_db():
+    """Resetta il database (solo per sviluppo)"""
+    db.drop_all()
+    db.create_all()
+    return "Database resettato con successo!"
 
 # ========== PAGINA DI ACCESSO COMMERCIANTE ==========
 @app.route('/accedi', methods=['GET', 'POST'])
