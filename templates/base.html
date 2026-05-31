@@ -7,14 +7,14 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     
     <!-- PWA - App installabile -->
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="/static/manifest.json">
     <link rel="apple-touch-icon" href="/static/icon-152.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#3498db">
     <meta name="mobile-web-app-capable" content="yes">
     
-    <!-- OneSignal SDK (opzionale) -->
+    <!-- OneSignal SDK -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
         window.OneSignalDeferred = window.OneSignalDeferred || [];
@@ -68,7 +68,6 @@
             });
         }
         
-        // Chiede il permesso per le notifiche al primo caricamento
         if (Notification.permission !== "granted") {
             setTimeout(() => {
                 OneSignalDeferred.push(async (OneSignal) => {
