@@ -109,12 +109,15 @@ def commerciante():
     if telefono:
         consegne_attesa = Consegna.query.filter_by(stato='attesa_conferma', comm_telefono=telefono).order_by(Consegna.data_creazione.desc()).all()
         consegne_accettate = Consegna.query.filter_by(stato='accettata', comm_telefono=telefono).order_by(Consegna.data_creazione.desc()).all()
+        consegne_rifiutate = Consegna.query.filter_by(stato='rifiutata', comm_telefono=telefono).order_by(Consegna.data_creazione.desc()).all()
     else:
         consegne_attesa = []
         consegne_accettate = []
+        consegne_rifiutate = []
     return render_template('commerciante.html', 
                          consegne_attesa=consegne_attesa,
                          consegne_accettate=consegne_accettate,
+                         consegne_rifiutate=consegne_rifiutate,
                          telefono=telefono)
 
 # ========== DASHBOARD ADMIN ==========
@@ -123,13 +126,14 @@ def admin():
     consegne_richieste = Consegna.query.filter_by(stato='richiesta').order_by(Consegna.data_creazione.desc()).all()
     consegne_attesa = Consegna.query.filter_by(stato='attesa_conferma').order_by(Consegna.data_creazione.desc()).all()
     consegne_accettate = Consegna.query.filter_by(stato='accettata').order_by(Consegna.accettata_il.desc()).all()
-    storico = Consegna.query.filter(Consegna.stato.in_(['consegnata', 'cancellata', 'rifiutata'])).order_by(Consegna.data_creazione.desc()).limit(20).all()
+    storico = Consegna.query.filter(Consegna.stato.in_(['consegnata', 'cancellata', 'rifiutata'])).order_by(Consegna.data_creazione.desc()).all()
     
     return render_template('admin.html', 
                          consegne_richieste=consegne_richieste,
                          consegne_attesa=consegne_attesa,
                          consegne_accettate=consegne_accettate,
-                         storico=storico)
+                         storico=storico,
+                         today=datetime.now(timezone.utc))
 
 # ========== CREA NUOVA CONSEGNA ==========
 @app.route('/nuova', methods=['GET', 'POST'])
