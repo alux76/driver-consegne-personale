@@ -5,6 +5,8 @@
 {% block content %}
 <h2>👑 Admin Dashboard - Tutte le consegne</h2>
 
+<button onclick="pulisciTutte()" class="btn" style="background:#e74c3c; margin-bottom:20px;">🗑️ Pulisci tutte le consegne</button>
+
 <!-- RIEPILOGO INCASSI GIORNALIERI -->
 <h3>📊 Riepilogo incassi giornalieri</h3>
 {% set oggi = namespace(data=[]) %}
@@ -65,6 +67,29 @@
     <p>Nessuna consegna in attesa.</p>
 {% endif %}
 
+<!-- CONSEGNE IN ATTESA DI CONFERMA (RILANCI) -->
+<h3>⏳ Consegne in attesa di conferma (rilanci)</h3>
+{% if consegne_attesa %}
+    <table class="tabella">
+        <thead>
+            <tr><th>Commerciante</th><th>Cliente</th><th>Orario richiesto</th><th>Driver propone</th><th>Totale</th></tr>
+        </thead>
+        <tbody>
+        {% for c in consegne_attesa %}
+        <tr>
+            <td>{{ c.comm_nome }} ({{ c.comm_telefono }})</td>
+            <td>{{ c.cliente_nome }}</td>
+            <td>{{ c.orario_richiesto }}</td>
+            <td><strong>{{ c.orario_proposto_driver }}</strong></td>
+            <td>{{ c.totale_euro }}€</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Nessuna consegna in attesa di conferma.</p>
+{% endif %}
+
 <!-- CONSEGNE ACCETTATE -->
 <h3>📦 Consegne accettate</h3>
 {% if consegne_accettate %}
@@ -97,6 +122,20 @@ function elimina(id) {
     if(confirm("⚠️ Eliminare questa consegna? Operazione irreversibile!")) {
         fetch(`/api/elimina_consegna/${id}`, {method: 'POST'})
             .then(() => location.reload());
+    }
+}
+function pulisciTutte() {
+    if(confirm("⚠️ ATTENZIONE: Questa operazione cancellerà TUTTE le consegne. Sei sicuro?")) {
+        fetch('/api/pulisci_tutte', {method: 'POST'})
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    alert(`✅ Cancellate ${data.cancellate} consegne`);
+                    location.reload();
+                } else {
+                    alert("❌ Errore: " + data.error);
+                }
+            });
     }
 }
 </script>
