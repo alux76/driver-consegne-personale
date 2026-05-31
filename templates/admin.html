@@ -5,27 +5,99 @@
 {% block content %}
 <h2>👑 Admin Dashboard - Tutte le consegne</h2>
 
+<!-- RIEPILOGO INCASSI GIORNALIERI -->
+<h3>📊 Riepilogo incassi giornalieri</h3>
+{% set oggi = namespace(data=[]) %}
+{% for c in storico %}
+    {% if c.data_creazione.date() == today.date() %}
+        {% set oggi.data = oggi.data + [c] %}
+    {% endif %}
+{% endfor %}
+{% set totale_giorno = oggi.data | sum(attribute='totale_euro') %}
+<p><strong>📅 Oggi ({{ today.strftime('%d/%m/%Y') }})</strong></p>
+<p>✅ Consegne completate: {{ oggi.data | length }}</p>
+<p>💰 Totale incassato: {{ "%.2f"|format(totale_giorno) }}€</p>
+
+{% if oggi.data %}
+    <table class="tabella">
+        <thead>
+            <tr><th>Commerciante</th><th>Cliente</th><th>Totale</th><th>Orario</th></tr>
+        </thead>
+        <tbody>
+        {% for c in oggi.data %}
+        <tr>
+            <td>{{ c.comm_nome }} ({{ c.comm_telefono }})</td>
+            <td>{{ c.cliente_nome }}</td>
+            <td>{{ c.totale_euro }}€</td>
+            <td>{{ c.orario_richiesto or '--' }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Nessuna consegna completata oggi.</p>
+{% endif %}
+
+<!-- NUOVE CONSEGNE -->
 <h3>🆕 Nuove consegne</h3>
-<table class="tabella">
-    <thead><tr><th>Commerciante</th><th>Cliente</th><th>Indirizzo</th><th>Orario</th><th>Totale</th><th>Azioni</th></tr></thead>
-    <tbody>
-    {% for c in consegne_richieste %}
-    <tr>
-        <td>{{ c.comm_nome }} ({{ c.comm_telefono }})</td>
-        <td>{{ c.cliente_nome }}</td>
-        <td>{{ c.cliente_indirizzo_consegna[:40] }}...</td>
-        <td>{{ c.orario_richiesto or '--' }}</td>
-        <td>{{ c.totale_euro }}€</td>
-        <td><button onclick="accetta('{{ c.id }}')" class="btn">✅ Accetta</button></td>
-    </tr>
-    {% endfor %}
-    </tbody>
-</table>
+{% if consegne_richieste %}
+    <table class="tabella">
+        <thead>
+            <tr><th>Commerciante</th><th>Cliente</th><th>Indirizzo</th><th>Orario</th><th>Totale</th><th>Azioni</th></tr>
+        </thead>
+        <tbody>
+        {% for c in consegne_richieste %}
+        <tr>
+            <td>{{ c.comm_nome }} ({{ c.comm_telefono }})</td>
+            <td>{{ c.cliente_nome }}</td>
+            <td>{{ c.cliente_indirizzo_consegna[:40] }}...</td>
+            <td>{{ c.orario_richiesto or '--' }}</td>
+            <td>{{ c.totale_euro }}€</td>
+            <td>
+                <button onclick="accetta('{{ c.id }}')" class="btn">✅ Accetta</button>
+                <button onclick="elimina('{{ c.id }}')" class="btn">🗑️ Elimina</button>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Nessuna consegna in attesa.</p>
+{% endif %}
+
+<!-- CONSEGNE ACCETTATE -->
+<h3>📦 Consegne accettate</h3>
+{% if consegne_accettate %}
+    <table class="tabella">
+        <thead>
+            <tr><th>Commerciante</th><th>Cliente</th><th>Orario</th><th>Totale</th><th>Azioni</th></tr>
+        </thead>
+        <tbody>
+        {% for c in consegne_accettate %}
+        <tr>
+            <td>{{ c.comm_nome }} ({{ c.comm_telefono }})</td>
+            <td>{{ c.cliente_nome }}</td>
+            <td>{{ c.orario_richiesto }}</td>
+            <td>{{ c.totale_euro }}€</td>
+            <td><a href="{{ url_for('dettaglio_consegna', id=c.id) }}" class="btn">🔍 Dettaglio</a></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Nessuna consegna in corso.</p>
+{% endif %}
 
 <script>
 function accetta(id) {
     fetch(`/api/accetta_consegna/${id}`, {method: 'POST'})
         .then(() => location.reload());
+}
+function elimina(id) {
+    if(confirm("⚠️ Eliminare questa consegna? Operazione irreversibile!")) {
+        fetch(`/api/elimina_consegna/${id}`, {method: 'POST'})
+            .then(() => location.reload());
+    }
 }
 </script>
 {% endblock %}
