@@ -5,25 +5,6 @@
 {% block content %}
 <h2>🚚 Driver Dashboard</h2>
 
-<!-- Notifiche sonore e vibrazione -->
-<script>
-function suonaNotifica() {
-    try {
-        const audio = new Audio('/static/notification.mp3');
-        audio.play().catch(e => console.log('Audio non supportato'));
-        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-    } catch(e) {}
-}
-
-// Controlla nuove consegne ogni 15 secondi
-setInterval(() => {
-    fetch('/api/nuove_consegne')
-        .then(res => res.json())
-        .then(data => { if(data.nuove > 0) suonaNotifica(); })
-        .catch(() => {});
-}, 15000);
-</script>
-
 <h3>🆕 Nuove consegne</h3>
 {% if consegne_richieste %}
     <table class="tabella">
@@ -40,8 +21,9 @@ setInterval(() => {
             <td>{{ c.totale_euro }}€</td>
             <td>
                 <button onclick="accetta('{{ c.id }}')" class="btn">✅ Accetta</button>
-                <button onclick="rilancia('{{ c.id }}')" class="btn">🔄 Rilancia orario</button>
+                <button onclick="rilancia('{{ c.id }}')" class="btn">🔄 Rilancia</button>
                 <button onclick="rifiuta('{{ c.id }}')" class="btn" style="background:#e74c3c;">❌ Rifiuta</button>
+                <button onclick="elimina('{{ c.id }}')" class="btn" style="background:#000; color:white;">🗑️ Elimina</button>
             </td>
         </tr>
         {% endfor %}
@@ -111,8 +93,7 @@ setInterval(() => {
 <script>
 function accetta(id) {
     fetch(`/api/accetta_consegna/${id}`, {method: 'POST'})
-        .then(res => res.json())
-        .then(data => { if(data.success) location.reload(); });
+        .then(() => location.reload());
 }
 function rilancia(id) {
     let nuovo_orario = prompt("Proponi un nuovo orario (es. 20:30):");
@@ -121,17 +102,23 @@ function rilancia(id) {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({nuovo_orario: nuovo_orario})
-        }).then(res => res.json()).then(data => { if(data.success) location.reload(); });
+        }).then(() => location.reload());
     }
 }
 function rifiuta(id) {
-    let motivo = prompt("Motivo del rifiuto (es. troppo lontano, orario non compatibile):");
+    let motivo = prompt("Motivo del rifiuto:");
     if(motivo) {
         fetch(`/api/rifiuta_consegna/${id}`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({motivo: motivo})
-        }).then(res => res.json()).then(data => { if(data.success) location.reload(); });
+        }).then(() => location.reload());
+    }
+}
+function elimina(id) {
+    if(confirm("⚠️ Eliminare questa consegna? Operazione irreversibile!")) {
+        fetch(`/api/elimina_consegna/${id}`, {method: 'POST'})
+            .then(() => location.reload());
     }
 }
 </script>
