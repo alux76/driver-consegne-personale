@@ -40,6 +40,14 @@
     <fieldset>
         <legend>🚗 Dettagli consegna</legend>
         
+        <label>📌 Tipo consegna (extra):</label>
+        <select name="supplemento_extra" id="supplemento_extra">
+            <option value="0">Standard (0€)</option>
+            <option value="2">🌙 Notturna (dopo 22:00) +2€</option>
+            <option value="2">🎉 Festiva +2€</option>
+            <option value="3">🏞️ Campagna (fuori paese) +3€</option>
+        </select>
+        
         <label>
             <input type="checkbox" name="fragile" id="fragile">
             📦 Consegna fragile (+1€)
@@ -59,16 +67,18 @@
 <script>
     const pianoInput = document.getElementById('piano');
     const fragileCheck = document.getElementById('fragile');
+    const extraSelect = document.getElementById('supplemento_extra');
     const totaleSpan = document.getElementById('totale_anteprima');
     
     function aggiornaPreventivo() {
         const piano = parseInt(pianoInput.value) || 0;
         const fragile = fragileCheck.checked;
+        const extra = parseFloat(extraSelect.value) || 0;
         
         fetch('/api/calcola_preventivo', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({piano: piano, fragile: fragile})
+            body: JSON.stringify({piano: piano, fragile: fragile, extra: extra})
         })
         .then(res => res.json())
         .then(data => {
@@ -78,12 +88,14 @@
             let totale = 3.0;
             if (piano > 0) totale += piano * 0.50;
             if (fragile) totale += 1.0;
+            totale += extra;
             totaleSpan.textContent = totale.toFixed(2);
         });
     }
     
     pianoInput.addEventListener('input', aggiornaPreventivo);
     fragileCheck.addEventListener('change', aggiornaPreventivo);
+    extraSelect.addEventListener('change', aggiornaPreventivo);
     
     aggiornaPreventivo();
 </script>
