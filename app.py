@@ -60,8 +60,8 @@ def accedi():
             print(f"Telefono ricevuto: {telefono}")
             if telefono:
                 return redirect(url_for('commerciante', telefono=telefono))
-        print("Renderizzazione login.html")
-        return render_template('login.html')
+        print("Renderizzazione accedi.html")
+        return render_template('accedi.html')
     except Exception as e:
         print(f"ERRORE: {str(e)}")
         traceback.print_exc()
