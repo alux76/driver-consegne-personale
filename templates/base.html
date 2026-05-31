@@ -11,7 +11,10 @@
         <div class="container">
             <h1>🚚 Driver Consegne</h1>
             <ul>
+                {% if not request.args.get('telefono') %}
                 <li><a href="{{ url_for('index') }}">🏠 Home</a></li>
+                <li><a href="{{ url_for('admin') }}">👑 Admin</a></li>
+                {% endif %}
                 <li><a href="{{ url_for('commerciante') }}">🏪 Commerciante</a></li>
                 <li><a href="{{ url_for('nuova_consegna') }}">➕ Nuova consegna</a></li>
             </ul>
