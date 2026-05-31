@@ -56,7 +56,7 @@ def accedi():
         telefono = request.form.get('telefono')
         if telefono:
             return redirect(url_for('commerciante', telefono=telefono))
-    return render_template('accedi.html')
+    return render_template('login.html')
 
 # ========== API NUOVE CONSEGNE ==========
 @app.route('/api/nuove_consegne', methods=['GET'])
