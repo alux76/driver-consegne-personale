@@ -51,7 +51,7 @@
 {% if consegne_corso %}
     <table class="tabella">
         <thead>
-            <tr><th>Cliente</th><th>Indirizzo</th><th>Orario</th><th>Totale</th><th>Azioni</th></tr>
+            <tr><th>Cliente</th><th>Indirizzo</th><th>Orario</th><th>Totale</th><th>Stato</th><th>Azioni</th></tr>
         </thead>
         <tbody>
         {% for c in consegne_corso %}
@@ -60,6 +60,7 @@
             <td>{{ c.cliente_indirizzo_consegna[:30] }}...</td>
             <td>{{ c.orario_richiesto or '--' }}</td>
             <td>{{ c.totale_euro }}€</td>
+            <td>✅ Accettata</strong></td>
             <td><a href="{{ url_for('dettaglio_consegna', id=c.id) }}" class="btn">🔍 Dettaglio</a></td>
         </tr>
         {% endfor %}
