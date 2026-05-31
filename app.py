@@ -52,6 +52,14 @@ def invia_notifica_telegram(messaggio, titolo="Driver Consegne"):
         except:
             pass
 
+# ========== FORZA RESET DATABASE ==========
+@app.route('/force_reset')
+def force_reset():
+    """Forza la ricreazione del database con tutte le colonne"""
+    db.drop_all()
+    db.create_all()
+    return "Database ricreato da zero con tutte le colonne!"
+
 # ========== RESET DATABASE ==========
 @app.route('/reset_db')
 def reset_db():
