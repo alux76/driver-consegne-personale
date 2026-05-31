@@ -4,13 +4,10 @@
 
 {% block content %}
 <script>
-    // Salva il numero di telefono nel browser
     const telefono = "{{ telefono }}";
     if (telefono) {
         localStorage.setItem("telefono_commerciante", telefono);
     }
-    
-    // Ricarica la pagina ogni 10 secondi per vedere nuovi aggiornamenti
     setTimeout(function() {
         location.reload();
     }, 10000);
