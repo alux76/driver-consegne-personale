@@ -15,7 +15,7 @@
         <input type="tel" name="comm_telefono" required>
         
         <label>Indirizzo partenza:</label>
-        <input type="text" name="comm_indirizzo_partenza" required>
+        <input type="text" name="comm_indirizzo_partenza" required placeholder="es. Via Roma 1, Grottaglie">
     </fieldset>
     
     <fieldset>
@@ -27,10 +27,11 @@
         <input type="tel" name="cliente_telefono" required>
         
         <label>Indirizzo consegna:</label>
-        <input type="text" name="cliente_indirizzo_consegna" required>
+        <input type="text" name="cliente_indirizzo_consegna" required placeholder="es. Via Lecce 10, Grottaglie">
         
         <label>Piano:</label>
-        <input type="number" name="cliente_piano" value="0" min="0">
+        <input type="number" name="cliente_piano" id="piano" value="0" min="0">
+        <small>Piano 0 = terra / nessun supplemento. Dal piano 1: +0.50€ a piano</small>
         
         <label>Note:</label>
         <textarea name="cliente_note" rows="2"></textarea>
@@ -38,47 +39,52 @@
     
     <fieldset>
         <legend>🚗 Dettagli consegna</legend>
-        <label>Km stimati:</label>
-        <input type="number" name="km" step="0.1" id="km" required>
         
         <label>
             <input type="checkbox" name="fragile" id="fragile">
             📦 Consegna fragile (+1€)
         </label>
         
-        <div id="preventivo_anteprima" style="margin-top: 15px; padding: 10px; background: #f0f0f0; border-radius: 5px;">
-            <strong>💰 Preventivo: </strong><span id="totale_anteprima">0.00</span>€
+        <label>Orario richiesto:</label>
+        <input type="text" name="orario_richiesto" placeholder="es. 20:00">
+        
+        <div id="preventivo_anteprima" style="margin-top: 15px; padding: 10px; background: #d4edda; border-radius: 5px;">
+            <strong>💰 Preventivo: </strong><span id="totale_anteprima">3.00</span>€
         </div>
     </fieldset>
     
-    <button type="submit" class="btn">✅ Crea consegna e calcola preventivo</button>
+    <button type="submit" class="btn">✅ Crea consegna</button>
 </form>
 
 <script>
-    const kmInput = document.getElementById('km');
-    const pianoInput = document.querySelector('input[name="cliente_piano"]');
+    const pianoInput = document.getElementById('piano');
     const fragileCheck = document.getElementById('fragile');
     const totaleSpan = document.getElementById('totale_anteprima');
     
     function aggiornaPreventivo() {
-        const km = parseFloat(kmInput.value) || 0;
         const piano = parseInt(pianoInput.value) || 0;
         const fragile = fragileCheck.checked;
         
         fetch('/api/calcola_preventivo', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({km: km, piano: piano, fragile: fragile})
+            body: JSON.stringify({piano: piano, fragile: fragile})
         })
         .then(res => res.json())
         .then(data => {
             totaleSpan.textContent = data.totale;
+        })
+        .catch(() => {
+            let totale = 3.0;
+            if (piano > 0) totale += piano * 0.50;
+            if (fragile) totale += 1.0;
+            totaleSpan.textContent = totale.toFixed(2);
         });
     }
     
-    kmInput.addEventListener('input', aggiornaPreventivo);
     pianoInput.addEventListener('input', aggiornaPreventivo);
     fragileCheck.addEventListener('change', aggiornaPreventivo);
+    
     aggiornaPreventivo();
 </script>
 {% endblock %}

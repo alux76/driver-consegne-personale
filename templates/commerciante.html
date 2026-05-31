@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Commerciante Dashboard{% endblock %}
+
+{% block content %}
+<h2>🏪 Commerciante Dashboard</h2>
+
+<a href="{{ url_for('nuova_consegna') }}" class="btn">➕ Nuova consegna</a>
+
+<h3>🔄 Richieste di rilancio orario</h3>
+{% if consegne_attesa %}
+    <table class="tabella">
+        <thead>
+            <tr><th>Cliente</th><th>Orario richiesto</th><th>Driver propone</th><th>Totale</th><th>Azioni</th></tr>
+        </thead>
+        <tbody>
+        {% for c in consegne_attesa %}
+        <tr>
+            <td>{{ c.cliente_nome }}</td>
+            <td>{{ c.orario_richiesto }}</td>
+            <td><strong>{{ c.orario_proposto_driver }}</strong></td>
+            <td>{{ c.totale_euro }}€</td>
+            <td>
+                <button onclick="accettaRilancio('{{ c.id }}')" class="btn">✅ Accetta nuovo orario</button>
+                <button onclick="cancellaConsegna('{{ c.id }}')" class="btn" style="background:#e74c3c;">❌ Cancella</button>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Nessuna richiesta di rilancio.</p>
+{% endif %}
+
+<h3>📦 Consegne confermate</h3>
+{% if consegne_accettate %}
+    <table class="tabella">
+        <thead>
+            <tr><th>Cliente</th><th>Orario</th><th>Totale</th></tr>
+        </thead>
+        <tbody>
+        {% for c in consegne_accettate %}
+        <tr>
+            <td>{{ c.cliente_nome }}</td>
+            <td>{{ c.orario_richiesto }}</td>
+            <td>{{ c.totale_euro }}€</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Nessuna consegna confermata.</p>
+{% endif %}
+
+<script>
+function accettaRilancio(id) {
+    fetch(`/api/conferma_orario/${id}`, {method: 'POST'})
+        .then(res => res.json())
+        .then(data => { if(data.success) location.reload(); });
+}
+function cancellaConsegna(id) {
+    if(confirm("Annullare la consegna?")) {
+        fetch(`/api/cancella_consegna/${id}`, {method: 'POST'})
+            .then(res => res.json())
+            .then(data => { if(data.success) location.reload(); });
+    }
+}
+</script>
+{% endblock %}
