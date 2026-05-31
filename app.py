@@ -3,6 +3,7 @@ from models import db, Consegna
 from dotenv import load_dotenv
 import os
 import requests
+import traceback
 from datetime import datetime, timezone
 
 load_dotenv()
@@ -49,14 +50,22 @@ def invia_notifica_telegram(messaggio, titolo="Driver Consegne"):
         except:
             pass
 
-# ========== PAGINA DI ACCESSO COMMERCIANTE ==========
+# ========== PAGINA DI ACCESSO COMMERCIANTE (CON DEBUG) ==========
 @app.route('/accedi', methods=['GET', 'POST'])
 def accedi():
-    if request.method == 'POST':
-        telefono = request.form.get('telefono')
-        if telefono:
-            return redirect(url_for('commerciante', telefono=telefono))
-    return render_template('login.html')
+    try:
+        print("=== Accesso alla route /accedi ===")
+        if request.method == 'POST':
+            telefono = request.form.get('telefono')
+            print(f"Telefono ricevuto: {telefono}")
+            if telefono:
+                return redirect(url_for('commerciante', telefono=telefono))
+        print("Renderizzazione login.html")
+        return render_template('login.html')
+    except Exception as e:
+        print(f"ERRORE: {str(e)}")
+        traceback.print_exc()
+        return f"Errore: {str(e)}", 500
 
 # ========== API NUOVE CONSEGNE ==========
 @app.route('/api/nuove_consegne', methods=['GET'])
