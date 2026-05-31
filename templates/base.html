@@ -2,9 +2,30 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Driver Consegne - {% block title %}Home{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <!-- PWA - App installabile -->
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="/static/icon-152.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#3498db">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- OneSignal SDK (opzionale) -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        OneSignalDeferred.push(async function(OneSignal) {
+            await OneSignal.init({
+                appId: "8b207e1f-4102-4d03-bf26-1bc91cb95d34",
+                allowLocalhostAsSecureOrigin: true,
+            });
+            console.log("✅ OneSignal inizializzato");
+        });
+    </script>
 </head>
 <body>
     <nav>
@@ -32,5 +53,24 @@
         
         {% block content %}{% endblock %}
     </div>
+    
+    <!-- Service Worker per PWA -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/sw.js')
+                .then(reg => console.log('✅ Service Worker registrato', reg))
+                .catch(err => console.log('❌ Service Worker errore', err));
+        }
+        
+        // Chiede il permesso per le notifiche al primo caricamento
+        if (Notification.permission !== "granted") {
+            setTimeout(() => {
+                OneSignalDeferred.push(async (OneSignal) => {
+                    const permission = await OneSignal.Notifications.requestPermission();
+                    console.log("Permesso notifiche:", permission);
+                });
+            }, 2000);
+        }
+    </script>
 </body>
 </html>
