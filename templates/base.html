@@ -11,7 +11,7 @@
         <div class="container">
             <h1>🚚 Driver Consegne</h1>
             <ul>
-                {% if request.endpoint != 'accedi' and not request.args.get('telefono') %}
+                {% if request.endpoint == 'index' or request.endpoint == 'admin' %}
                 <li><a href="{{ url_for('index') }}">🏠 Home</a></li>
                 <li><a href="{{ url_for('admin') }}">👑 Admin</a></li>
                 {% endif %}
