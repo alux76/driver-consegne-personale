@@ -9,7 +9,16 @@
     if (telefono) {
         localStorage.setItem("telefono_commerciante", telefono);
     }
+    
+    // Ricarica la pagina ogni 10 secondi per vedere nuovi aggiornamenti
+    setTimeout(function() {
+        location.reload();
+    }, 10000);
 </script>
+
+<div style="background: #f0f0f0; padding: 5px; margin-bottom: 10px; font-size: 12px; text-align: center; border-radius: 5px;">
+    🔄 Questa pagina si aggiorna automaticamente ogni 10 secondi
+</div>
 
 <h2>🏪 Commerciante Dashboard</h2>
 
