@@ -10,7 +10,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'chiave-di-default')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///consegne.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///consegne_nuovo.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -52,35 +52,16 @@ def invia_notifica_telegram(messaggio, titolo="Driver Consegne"):
         except:
             pass
 
-# ========== FORCE REBUILD DATABASE ==========
+# ========== ROUTE PER FORZARE REBUILD ==========
 @app.route('/force_rebuild')
 def force_rebuild():
-    """Cancella fisicamente il database e lo ricrea"""
-    db_path = 'instance/consegne.db'
+    import os
+    db_path = 'instance/consegne_nuovo.db'
     if os.path.exists(db_path):
         os.remove(db_path)
         print(f"🗑️ Database {db_path} cancellato")
     db.create_all()
     return "Database ricreato da zero! La colonna supplemento_extra è stata aggiunta."
-
-# ========== RESET DATABASE ==========
-@app.route('/reset_db')
-def reset_db():
-    """Resetta il database"""
-    db.drop_all()
-    db.create_all()
-    return "Database resettato con successo!"
-
-# ========== HARD RESET DATABASE ==========
-@app.route('/hard_reset')
-def hard_reset():
-    """Reset forzato del database"""
-    try:
-        db.drop_all()
-        db.create_all()
-        return "Database resettato con successo! Tutte le colonne sono state ricreate."
-    except Exception as e:
-        return f"Errore: {str(e)}"
 
 # ========== PAGINA DI ACCESSO COMMERCIANTE ==========
 @app.route('/accedi', methods=['GET', 'POST'])
@@ -105,7 +86,6 @@ def api_nuove_consegne():
 # ========== API ELIMINA CONSEGNA ==========
 @app.route('/api/elimina_consegna/<id>', methods=['POST'])
 def api_elimina_consegna(id):
-    """Elimina una consegna (solo admin/driver)"""
     consegna = Consegna.query.get_or_404(id)
     db.session.delete(consegna)
     db.session.commit()
