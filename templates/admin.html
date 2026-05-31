@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<h2>👑 Admin Dashboard - Tutte le consegne</h2>
+
+<h3>🆕 Nuove consegne</h3>
+<table class="tabella">
+    <thead><tr><th>Commerciante</th><th>Cliente</th><th>Indirizzo</th><th>Orario</th><th>Totale</th><th>Azioni</th></tr></thead>
+    <tbody>
+    {% for c in consegne_richieste %}
+    <tr>
+        <td>{{ c.comm_nome }} ({{ c.comm_telefono }})</td>
+        <td>{{ c.cliente_nome }}</td>
+        <td>{{ c.cliente_indirizzo_consegna[:40] }}...</td>
+        <td>{{ c.orario_richiesto or '--' }}</td>
+        <td>{{ c.totale_euro }}€</td>
+        <td><button onclick="accetta('{{ c.id }}')" class="btn">✅ Accetta</button></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<script>
+function accetta(id) {
+    fetch(`/api/accetta_consegna/${id}`, {method: 'POST'})
+        .then(() => location.reload());
+}
+</script>
+{% endblock %}

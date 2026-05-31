@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Accedi Commerciante{% endblock %}
+
+{% block content %}
+<h2>🔐 Inserisci il tuo numero di telefono</h2>
+<form method="POST">
+    <input type="tel" name="telefono" placeholder="es. 3331234567" required>
+    <button type="submit" class="btn">Accedi</button>
+</form>
+<p>Lo inserisci solo la prima volta. Poi verrai riconosciuto automaticamente.</p>
+{% endblock %}

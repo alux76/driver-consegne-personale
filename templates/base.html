@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Driver Consegne - {% block title %}Home{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <!-- OneSignal SDK -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        OneSignalDeferred.push(async function(OneSignal) {
+            await OneSignal.init({
+                appId: "8b207e1f-4102-4d03-bf26-1bc91cb95d34",
+                allowLocalhostAsSecureOrigin: true,
+            });
+            console.log("✅ OneSignal inizializzato");
+        });
+    </script>
 </head>
 <body>
     <nav>
@@ -12,7 +25,9 @@
             <h1>🚚 Driver Consegne</h1>
             <ul>
                 <li><a href="{{ url_for('index') }}">🏠 Home</a></li>
+                <li><a href="{{ url_for('commerciante') }}">🏪 Commerciante</a></li>
                 <li><a href="{{ url_for('nuova_consegna') }}">➕ Nuova consegna</a></li>
+                <li><a href="{{ url_for('admin') }}">👑 Admin</a></li>
             </ul>
         </div>
     </nav>
@@ -28,5 +43,17 @@
         
         {% block content %}{% endblock %}
     </div>
+    
+    <script>
+        // Chiede il permesso per le notifiche al primo caricamento
+        if (Notification.permission !== "granted") {
+            setTimeout(() => {
+                OneSignalDeferred.push(async (OneSignal) => {
+                    const permission = await OneSignal.Notifications.requestPermission();
+                    console.log("Permesso notifiche:", permission);
+                });
+            }, 2000);
+        }
+    </script>
 </body>
 </html>

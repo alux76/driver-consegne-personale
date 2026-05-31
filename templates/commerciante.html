@@ -3,6 +3,14 @@
 {% block title %}Commerciante Dashboard{% endblock %}
 
 {% block content %}
+<script>
+    // Salva il numero di telefono nel browser
+    const telefono = "{{ telefono }}";
+    if (telefono) {
+        localStorage.setItem("telefono_commerciante", telefono);
+    }
+</script>
+
 <h2>🏪 Commerciante Dashboard</h2>
 
 <a href="{{ url_for('nuova_consegna') }}" class="btn">➕ Nuova consegna</a>
@@ -21,8 +29,8 @@
             <td><strong>{{ c.orario_proposto_driver }}</strong></td>
             <td>{{ c.totale_euro }}€</td>
             <td>
-                <button onclick="accettaRilancio('{{ c.id }}')" class="btn">✅ Accetta nuovo orario</button>
-                <button onclick="cancellaConsegna('{{ c.id }}')" class="btn" style="background:#e74c3c;">❌ Cancella</button>
+                <button onclick="accettaRilancio('{{ c.id }}')" class="btn">✅ Accetta</button>
+                <button onclick="cancellaConsegna('{{ c.id }}')" class="btn">❌ Cancella</button>
             </td>
         </tr>
         {% endfor %}
@@ -32,37 +40,61 @@
     <p>Nessuna richiesta di rilancio.</p>
 {% endif %}
 
-<h3>📦 Consegne confermate</h3>
-{% if consegne_accettate %}
+<h3>📦 Consegne in corso</h3>
+{% set consegne_corso = consegne_accettate | selectattr("pagata", "equalto", false) | list %}
+{% if consegne_corso %}
     <table class="tabella">
         <thead>
-            <tr><th>Cliente</th><th>Orario</th><th>Totale</th></tr>
+            <tr><th>Cliente</th><th>Indirizzo</th><th>Orario</th><th>Totale</th><th>Azioni</th></tr>
         </thead>
         <tbody>
-        {% for c in consegne_accettate %}
+        {% for c in consegne_corso %}
         <tr>
             <td>{{ c.cliente_nome }}</td>
-            <td>{{ c.orario_richiesto }}</td>
+            <td>{{ c.cliente_indirizzo_consegna[:30] }}...</td>
+            <td>{{ c.orario_richiesto or '--' }}</td>
             <td>{{ c.totale_euro }}€</td>
+            <td><a href="{{ url_for('dettaglio_consegna', id=c.id) }}" class="btn">🔍 Dettaglio</a></td>
         </tr>
         {% endfor %}
         </tbody>
     </table>
 {% else %}
-    <p>Nessuna consegna confermata.</p>
+    <p>Nessuna consegna in corso.</p>
+{% endif %}
+
+<h3>📜 Storico consegne (completate)</h3>
+{% set storico = consegne_accettate | selectattr("pagata", "equalto", true) | list %}
+{% if storico %}
+    <table class="tabella">
+        <thead>
+            <tr><th>Cliente</th><th>Indirizzo</th><th>Orario</th><th>Totale</th><th>Pagata</th></tr>
+        </thead>
+        <tbody>
+        {% for c in storico %}
+        <tr>
+            <td>{{ c.cliente_nome }}</td>
+            <td>{{ c.cliente_indirizzo_consegna[:30] }}...</td>
+            <td>{{ c.orario_richiesto or '--' }}</td>
+            <td>{{ c.totale_euro }}€</td>
+            <td>{{ "✅ Sì" if c.pagata else "❌ No" }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Nessuna consegna completata.</p>
 {% endif %}
 
 <script>
 function accettaRilancio(id) {
     fetch(`/api/conferma_orario/${id}`, {method: 'POST'})
-        .then(res => res.json())
-        .then(data => { if(data.success) location.reload(); });
+        .then(() => location.reload());
 }
 function cancellaConsegna(id) {
     if(confirm("Annullare la consegna?")) {
         fetch(`/api/cancella_consegna/${id}`, {method: 'POST'})
-            .then(res => res.json())
-            .then(data => { if(data.success) location.reload(); });
+            .then(() => location.reload());
     }
 }
 </script>

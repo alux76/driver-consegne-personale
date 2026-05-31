@@ -17,15 +17,13 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
-# ========== FUNZIONE NOTIFICA TELEGRAM (A TE E A TUA MOGLIE) ==========
+# ========== FUNZIONE NOTIFICA TELEGRAM ==========
 def invia_notifica_telegram(messaggio, titolo="Driver Consegne"):
-    """Invia notifica Telegram a te (driver) e a tua moglie"""
     bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
     chat_id_driver = os.getenv('TELEGRAM_CHAT_ID_DRIVER')
     chat_id_moglie = os.getenv('TELEGRAM_CHAT_ID_MOGLIE')
     
     if not bot_token:
-        print("⚠️ Telegram non configurato (token mancante)")
         return
     
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
@@ -35,35 +33,30 @@ def invia_notifica_telegram(messaggio, titolo="Driver Consegne"):
         "disable_notification": False
     }
     
-    # Invia al driver (te)
     if chat_id_driver:
         data = data_template.copy()
         data["chat_id"] = chat_id_driver
         try:
-            response = requests.post(url, data=data)
-            if response.status_code == 200:
-                print("📢 Telegram inviato a te (driver)")
-            else:
-                print(f"❌ Errore invio a te: {response.status_code}")
-        except Exception as e:
-            print(f"❌ Errore: {e}")
-    else:
-        print("⚠️ Chat ID driver non configurato")
+            requests.post(url, data=data)
+        except:
+            pass
     
-    # Invia a tua moglie
     if chat_id_moglie:
         data = data_template.copy()
         data["chat_id"] = chat_id_moglie
         try:
-            response = requests.post(url, data=data)
-            if response.status_code == 200:
-                print("📢 Telegram inviato a tua moglie")
-            else:
-                print(f"❌ Errore invio a moglie: {response.status_code}")
-        except Exception as e:
-            print(f"❌ Errore: {e}")
-    else:
-        print("⚠️ Chat ID moglie non configurato")
+            requests.post(url, data=data)
+        except:
+            pass
+
+# ========== PAGINA DI ACCESSO COMMERCIANTE ==========
+@app.route('/accedi', methods=['GET', 'POST'])
+def accedi():
+    if request.method == 'POST':
+        telefono = request.form.get('telefono')
+        if telefono:
+            return redirect(url_for('commerciante', telefono=telefono))
+    return render_template('accedi.html')
 
 # ========== API NUOVE CONSEGNE ==========
 @app.route('/api/nuove_consegne', methods=['GET'])
@@ -85,14 +78,34 @@ def index():
                          consegne_accettate=consegne_accettate,
                          storico=storico)
 
-# ========== DASHBOARD COMMERCIANTE ==========
+# ========== DASHBOARD COMMERCIANTE (filtra per telefono) ==========
 @app.route('/commerciante')
 def commerciante():
-    consegne_attesa = Consegna.query.filter_by(stato='attesa_conferma').order_by(Consegna.data_creazione.desc()).all()
-    consegne_accettate = Consegna.query.filter_by(stato='accettata').order_by(Consegna.data_creazione.desc()).all()
+    telefono = request.args.get('telefono', '')
+    if telefono:
+        consegne_attesa = Consegna.query.filter_by(stato='attesa_conferma', comm_telefono=telefono).order_by(Consegna.data_creazione.desc()).all()
+        consegne_accettate = Consegna.query.filter_by(stato='accettata', comm_telefono=telefono).order_by(Consegna.data_creazione.desc()).all()
+    else:
+        consegne_attesa = []
+        consegne_accettate = []
     return render_template('commerciante.html', 
                          consegne_attesa=consegne_attesa,
-                         consegne_accettate=consegne_accettate)
+                         consegne_accettate=consegne_accettate,
+                         telefono=telefono)
+
+# ========== DASHBOARD ADMIN ==========
+@app.route('/admin')
+def admin():
+    consegne_richieste = Consegna.query.filter_by(stato='richiesta').order_by(Consegna.data_creazione.desc()).all()
+    consegne_attesa = Consegna.query.filter_by(stato='attesa_conferma').order_by(Consegna.data_creazione.desc()).all()
+    consegne_accettate = Consegna.query.filter_by(stato='accettata').order_by(Consegna.accettata_il.desc()).all()
+    storico = Consegna.query.filter(Consegna.stato.in_(['consegnata', 'cancellata', 'rifiutata'])).order_by(Consegna.data_creazione.desc()).limit(20).all()
+    
+    return render_template('admin.html', 
+                         consegne_richieste=consegne_richieste,
+                         consegne_attesa=consegne_attesa,
+                         consegne_accettate=consegne_accettate,
+                         storico=storico)
 
 # ========== CREA NUOVA CONSEGNA ==========
 @app.route('/nuova', methods=['GET', 'POST'])
@@ -115,16 +128,11 @@ def nuova_consegna():
         db.session.commit()
         
         invia_notifica_telegram(
-            f"🆕 *NUOVA CONSEGNA*\n"
-            f"🏪 Commerciante: {consegna.comm_nome}\n"
-            f"👤 Cliente: {consegna.cliente_nome}\n"
-            f"📍 Indirizzo: {consegna.cliente_indirizzo_consegna}\n"
-            f"🕐 Orario: {consegna.orario_richiesto or '--'}\n"
-            f"💰 Totale: {consegna.totale_euro}€"
+            f"🆕 *NUOVA CONSEGNA*\n🏪 {consegna.comm_nome}\n👤 {consegna.cliente_nome}\n📍 {consegna.cliente_indirizzo_consegna}\n🕐 {consegna.orario_richiesto or '--'}\n💰 {consegna.totale_euro}€"
         )
         
         flash('Consegna creata con successo!', 'success')
-        return redirect(url_for('commerciante'))
+        return redirect(url_for('commerciante', telefono=consegna.comm_telefono))
     
     return render_template('nuova_consegna.html')
 
@@ -158,14 +166,7 @@ def api_accetta_consegna(id):
         consegna.driver_id = 'driver_1'
         consegna.accettata_il = datetime.now(timezone.utc)
         db.session.commit()
-        
-        invia_notifica_telegram(
-            f"✅ *CONSEGNA ACCETTATA*\n"
-            f"🏪 {consegna.comm_nome}\n"
-            f"👤 {consegna.cliente_nome}\n"
-            f"🕐 Orario: {consegna.orario_richiesto}\n"
-            f"💰 {consegna.totale_euro}€"
-        )
+        invia_notifica_telegram(f"✅ *CONSEGNA ACCETTATA*\n🏪 {consegna.comm_nome}\n👤 {consegna.cliente_nome}\n🕐 {consegna.orario_richiesto}\n💰 {consegna.totale_euro}€")
         return jsonify({'success': True})
     return jsonify({'success': False}), 400
 
@@ -174,20 +175,11 @@ def api_rilancia_consegna(id):
     data = request.get_json()
     nuovo_orario = data.get('nuovo_orario')
     consegna = Consegna.query.get_or_404(id)
-    
     if consegna.stato == 'richiesta' and nuovo_orario:
         consegna.stato = 'attesa_conferma'
         consegna.orario_proposto_driver = nuovo_orario
         db.session.commit()
-        
-        invia_notifica_telegram(
-            f"🔄 *RILANCIO ORARIO INVIATO*\n"
-            f"🏪 {consegna.comm_nome}\n"
-            f"👤 {consegna.cliente_nome}\n"
-            f"⏰ Propongo: {nuovo_orario}\n"
-            f"💰 {consegna.totale_euro}€\n"
-            f"📍 In attesa di conferma dal commerciante"
-        )
+        invia_notifica_telegram(f"🔄 *RILANCIO ORARIO*\n🏪 {consegna.comm_nome}\n👤 {consegna.cliente_nome}\n⏰ Propongo: {nuovo_orario}")
         return jsonify({'success': True})
     return jsonify({'success': False}), 400
 
@@ -200,13 +192,7 @@ def api_rifiuta_consegna(id):
         consegna.stato = 'rifiutata'
         consegna.motivo_rifiuto = motivo
         db.session.commit()
-        
-        invia_notifica_telegram(
-            f"❌ *CONSEGNA RIFIUTATA*\n"
-            f"🏪 {consegna.comm_nome}\n"
-            f"👤 {consegna.cliente_nome}\n"
-            f"📝 Motivo: {motivo}"
-        )
+        invia_notifica_telegram(f"❌ *CONSEGNA RIFIUTATA*\n🏪 {consegna.comm_nome}\n👤 {consegna.cliente_nome}\n📝 Motivo: {motivo}")
         return jsonify({'success': True})
     return jsonify({'success': False}), 400
 
@@ -216,16 +202,9 @@ def api_paga_consegna(id):
     consegna.pagata = True
     consegna.stato = 'consegnata'
     db.session.commit()
-    
-    invia_notifica_telegram(
-        f"💰 *CONSEGNA PAGATA*\n"
-        f"🏪 {consegna.comm_nome}\n"
-        f"👤 {consegna.cliente_nome}\n"
-        f"💵 {consegna.totale_euro}€ in contanti"
-    )
+    invia_notifica_telegram(f"💰 *CONSEGNA PAGATA*\n🏪 {consegna.comm_nome}\n👤 {consegna.cliente_nome}\n💵 {consegna.totale_euro}€ in contanti")
     return jsonify({'success': True})
 
-# ========== API COMMERCIANTE ==========
 @app.route('/api/conferma_orario/<id>', methods=['POST'])
 def api_conferma_orario(id):
     consegna = Consegna.query.get_or_404(id)
@@ -236,14 +215,7 @@ def api_conferma_orario(id):
         consegna.driver_id = 'driver_1'
         consegna.accettata_il = datetime.now(timezone.utc)
         db.session.commit()
-        
-        invia_notifica_telegram(
-            f"✅ *RILANCIO ACCETTATO*\n"
-            f"🏪 {consegna.comm_nome}\n"
-            f"👤 {consegna.cliente_nome}\n"
-            f"🕐 Nuovo orario: {consegna.orario_richiesto}\n"
-            f"💰 {consegna.totale_euro}€"
-        )
+        invia_notifica_telegram(f"✅ *RILANCIO ACCETTATO*\n🏪 {consegna.comm_nome}\n👤 {consegna.cliente_nome}\n🕐 Nuovo orario: {consegna.orario_richiesto}")
         return jsonify({'success': True})
     return jsonify({'success': False}), 400
 
@@ -253,13 +225,7 @@ def api_cancella_consegna(id):
     if consegna.stato in ['richiesta', 'attesa_conferma']:
         consegna.stato = 'cancellata'
         db.session.commit()
-        
-        invia_notifica_telegram(
-            f"❌ *CONSEGNA CANCELLATA*\n"
-            f"🏪 {consegna.comm_nome}\n"
-            f"👤 {consegna.cliente_nome}\n"
-            f"📝 Cancellata dal commerciante"
-        )
+        invia_notifica_telegram(f"❌ *CONSEGNA CANCELLATA*\n🏪 {consegna.comm_nome}\n👤 {consegna.cliente_nome}")
         return jsonify({'success': True})
     return jsonify({'success': False}), 400
 
