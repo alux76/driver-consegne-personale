@@ -52,21 +52,24 @@ def invia_notifica_telegram(messaggio, titolo="Driver Consegne"):
         except:
             pass
 
-# ========== FORZA RESET DATABASE ==========
-@app.route('/force_reset')
-def force_reset():
-    """Forza la ricreazione del database con tutte le colonne"""
-    db.drop_all()
-    db.create_all()
-    return "Database ricreato da zero con tutte le colonne!"
-
 # ========== RESET DATABASE ==========
 @app.route('/reset_db')
 def reset_db():
-    """Resetta il database (solo per sviluppo)"""
+    """Resetta il database"""
     db.drop_all()
     db.create_all()
     return "Database resettato con successo!"
+
+# ========== HARD RESET DATABASE ==========
+@app.route('/hard_reset')
+def hard_reset():
+    """Reset forzato del database"""
+    try:
+        db.drop_all()
+        db.create_all()
+        return "Database resettato con successo! Tutte le colonne sono state ricreate."
+    except Exception as e:
+        return f"Errore: {str(e)}"
 
 # ========== PAGINA DI ACCESSO COMMERCIANTE ==========
 @app.route('/accedi', methods=['GET', 'POST'])
