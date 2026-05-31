@@ -39,6 +39,7 @@ def invia_notifica_telegram(messaggio, titolo="Driver Consegne"):
         data["chat_id"] = chat_id_driver
         try:
             requests.post(url, data=data)
+            print(f"📢 Notifica inviata a te (driver)")
         except:
             pass
     
@@ -47,20 +48,18 @@ def invia_notifica_telegram(messaggio, titolo="Driver Consegne"):
         data["chat_id"] = chat_id_moglie
         try:
             requests.post(url, data=data)
+            print(f"📢 Notifica inviata a tua moglie")
         except:
             pass
 
-# ========== PAGINA DI ACCESSO COMMERCIANTE (CON DEBUG) ==========
+# ========== PAGINA DI ACCESSO COMMERCIANTE ==========
 @app.route('/accedi', methods=['GET', 'POST'])
 def accedi():
     try:
-        print("=== Accesso alla route /accedi ===")
         if request.method == 'POST':
             telefono = request.form.get('telefono')
-            print(f"Telefono ricevuto: {telefono}")
             if telefono:
                 return redirect(url_for('commerciante', telefono=telefono))
-        print("Renderizzazione accedi.html")
         return render_template('accedi.html')
     except Exception as e:
         print(f"ERRORE: {str(e)}")
@@ -72,6 +71,16 @@ def accedi():
 def api_nuove_consegne():
     count = Consegna.query.filter_by(stato='richiesta').count()
     return jsonify({'nuove': count})
+
+# ========== API ELIMINA CONSEGNA ==========
+@app.route('/api/elimina_consegna/<id>', methods=['POST'])
+def api_elimina_consegna(id):
+    """Elimina una consegna (solo admin/driver)"""
+    consegna = Consegna.query.get_or_404(id)
+    db.session.delete(consegna)
+    db.session.commit()
+    print(f"🗑️ Consegna {id} eliminata")
+    return jsonify({'success': True})
 
 # ========== DASHBOARD DRIVER ==========
 @app.route('/')
@@ -130,7 +139,8 @@ def nuova_consegna():
             cliente_piano=int(request.form.get('cliente_piano', 0)),
             cliente_note=request.form.get('cliente_note', ''),
             fragile='fragile' in request.form,
-            orario_richiesto=request.form.get('orario_richiesto', '')
+            orario_richiesto=request.form.get('orario_richiesto', ''),
+            supplemento_extra=float(request.form.get('supplemento_extra', 0))
         )
         consegna.calcola_totale()
         db.session.add(consegna)
@@ -156,13 +166,15 @@ def dettaglio_consegna(id):
 def api_calcola_preventivo():
     data = request.get_json()
     piano = int(data.get('piano', 0))
+    extra = float(data.get('extra', 0))
+    fragile = data.get('fragile', False)
+    
     tariffa_base = 3.0
     supplemento_piano = 0.50
     
-    if piano > 0:
-        totale = tariffa_base + (piano * supplemento_piano)
-    else:
-        totale = tariffa_base
+    totale = tariffa_base + (piano * supplemento_piano) + extra
+    if fragile:
+        totale += 1.0
     
     return jsonify({'totale': round(totale, 2)})
 
