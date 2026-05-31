@@ -10,7 +10,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'chiave-di-default')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///consegne_nuovo.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -55,13 +55,9 @@ def invia_notifica_telegram(messaggio, titolo="Driver Consegne"):
 # ========== ROUTE PER FORZARE REBUILD ==========
 @app.route('/force_rebuild')
 def force_rebuild():
-    import os
-    db_path = 'instance/consegne_nuovo.db'
-    if os.path.exists(db_path):
-        os.remove(db_path)
-        print(f"🗑️ Database {db_path} cancellato")
+    db.drop_all()
     db.create_all()
-    return "Database ricreato da zero! La colonna supplemento_extra è stata aggiunta."
+    return "Database ricreato da zero!"
 
 # ========== PAGINA DI ACCESSO COMMERCIANTE ==========
 @app.route('/accedi', methods=['GET', 'POST'])
