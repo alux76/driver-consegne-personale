@@ -19,6 +19,26 @@
 
 <h2>🏪 Commerciante Dashboard</h2>
 
+<!-- RIEPILOGO NUMERICO -->
+<div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+    <div style="background: #3498db; color: white; padding: 10px 15px; border-radius: 10px;">
+        <strong>🔄 Rilanci</strong><br>
+        {{ consegne_attesa | length }}
+    </div>
+    <div style="background: #f39c12; color: white; padding: 10px 15px; border-radius: 10px;">
+        <strong>✅ Accettate</strong><br>
+        {{ consegne_accettate | selectattr("pagata", "equalto", false) | selectattr("stato", "equalto", "accettata") | list | length }}
+    </div>
+    <div style="background: #e74c3c; color: white; padding: 10px 15px; border-radius: 10px;">
+        <strong>❌ Rifiutate</strong><br>
+        {{ consegne_rifiutate | length }}
+    </div>
+    <div style="background: #27ae60; color: white; padding: 10px 15px; border-radius: 10px;">
+        <strong>💰 Completate</strong><br>
+        {{ consegne_accettate | selectattr("pagata", "equalto", true) | list | length }}
+    </div>
+</div>
+
 <a href="{{ url_for('nuova_consegna') }}" class="btn">➕ Nuova consegna</a>
 
 <!-- RICHIESTE DI RILANCIO ORARIO -->
@@ -42,7 +62,7 @@
         </tr>
         {% endfor %}
         </tbody>
-    <table>
+    </table>
 {% else %}
     <p>Nessuna richiesta di rilancio.</p>
 {% endif %}
@@ -74,7 +94,6 @@
 
 <!-- CONSEGNE RIFIUTATE -->
 <h3>❌ Consegne rifiutate</h3>
-{% set consegne_rifiutate = consegne_accettate | selectattr("stato", "equalto", "rifiutata") | list %}
 {% if consegne_rifiutate %}
     <table class="tabella">
         <thead>
@@ -91,12 +110,12 @@
         </tr>
         {% endfor %}
         </tbody>
-    </tr>
+    </table>
 {% else %}
     <p>Nessuna consegna rifiutata.</p>
 {% endif %}
 
-<!-- STORICO CONSEGNE (COMPLETATE/PAGATE) -->
+<!-- STORICO CONSEGNE (COMPLETATE) -->
 <h3>📜 Storico consegne (completate)</h3>
 {% set storico = consegne_accettate | selectattr("pagata", "equalto", true) | list %}
 {% if storico %}
