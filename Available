@@ -1,0 +1,31 @@
+Comando AT deprecato. Utilizzare schtasks.exe.
+
+Comando non valido.
+
+Il comando AT pianifica comandi e programmi per l'esecuzione sul computer 
+all'ora e data specificata. Il servizio Pianificazione deve essere avviato 
+per poter usare il comando AT.
+ 
+AT [\\nomecomputer] [ [id] [/DELETE] | /DELETE [/YES]]                    
+AT [\\nomecomputer] ora [/INTERACTIVE]
+    [ /EVERY:data[,...] | /NEXT:data[,...]] "comando"
+
+\\nomecomputer    Specifica un computer remoto. I comandi sono pianificati
+                  sul computer locale se questo parametro ä omesso.       
+id                Numero di identificazione assegnato ad un comando       
+                  pianificato.                                            
+/delete           Annulla un comando pianificato. Se id ä omesso, tutti
+                  i comandi pianificati sul computer vengono annullati.
+/yes              Usato con il comando per annullare tutti i processi
+                  se non si vuole che venga richiesta la conferma.
+ora               Specifica l'ora alla quale eseguire il comando.
+/interactive      Consente al processo di interagire col desktop dell'utente   
+                  che ä collegato quando il processo ä in esecuzione.
+/every:data[,...] Esegue il comando in un giorno della settimana o del mese.
+                  Se la data viene omessa viene usato il giorno del mese
+                  corrente.                                                
+/next:data[,...]  Esegue il comando specificato alla successiva occorrenza
+                  della data (esempio: giovedç prossimo). Se la data ä omessa
+                  viene usato il giorno del mese corrente.
+"comando"         Comando di Windows NT o programma batch da eseguire.
+
