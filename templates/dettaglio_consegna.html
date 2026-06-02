@@ -23,11 +23,26 @@
     <p><strong>Note:</strong> {{ consegna.cliente_note or '-' }}</p>
     
     <h3>💰 Preventivo</h3>
-    <p><strong>Km:</strong> {{ consegna.km }}</p>
-    <p><strong>Supplemento piano:</strong> {{ consegna.supplemento_piano }}€ x {{ consegna.cliente_piano }} = {{ consegna.cliente_piano * consegna.supplemento_piano }}€</p>
-    <p><strong>Supplemento fragile:</strong> {{ consegna.supplemento_fragile }}€</p>
+    <p><strong>Tariffa base:</strong> 3€</p>
+    <p><strong>Supplemento piano:</strong> {{ consegna.cliente_piano * 0.50 }}€</p>
+    {% if consegna.supplemento_extra > 0 %}
+    <p><strong>Supplemento extra:</strong> {{ consegna.supplemento_extra }}€</p>
+    {% endif %}
     <p><strong>Totale:</strong> <big>{{ consegna.totale_euro }}€</big></p>
+    
+    {% if consegna.stato == 'accettata' and not consegna.pagata %}
+    <button onclick="segnaPagata('{{ consegna.id }}')" class="btn" style="background:#27ae60;">💰 Segna come pagata (contanti)</button>
+    {% endif %}
     
     <a href="{{ url_for('index') }}" class="btn">← Torna alla lista</a>
 </div>
+
+<script>
+function segnaPagata(id) {
+    if(confirm("Hai ricevuto il pagamento in contanti?")) {
+        fetch(`/api/paga_consegna/${id}`, {method: 'POST'})
+            .then(() => location.href = '/');
+    }
+}
+</script>
 {% endblock %}
