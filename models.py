@@ -8,7 +8,7 @@ class Consegna(db.Model):
     __tablename__ = 'consegne'
     
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    stato = db.Column(db.String(50), default='richiesta')  # richiesta, attesa_modifica, attesa_conferma, accettata, consegnata, cancellata, rifiutata
+    stato = db.Column(db.String(50), default='richiesta')
     data_creazione = db.Column(db.DateTime, default=datetime.utcnow)
     
     comm_nome = db.Column(db.String(100), nullable=False)
@@ -28,7 +28,6 @@ class Consegna(db.Model):
     supplemento_extra = db.Column(db.Float, default=0.0)
     totale_euro = db.Column(db.Float, default=0)
     
-    # RILANCIO ECONOMICO
     prezzo_proposto = db.Column(db.Float, nullable=True)
     motivo_proposta = db.Column(db.Text, nullable=True)
     

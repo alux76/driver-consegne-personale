@@ -21,8 +21,7 @@
             <td>{{ c.totale_euro }}€</td>
             <td>
                 <button onclick="accetta('{{ c.id }}')" class="btn">✅ Accetta</button>
-                <button onclick="rilancia('{{ c.id }}')" class="btn">🔄 Rilancia orario</button>
-                <button onclick="proponiModifica('{{ c.id }}')" class="btn" style="background:#f39c12;">💰 Propone modifica</button>
+                <button onclick="propostaUnica('{{ c.id }}')" class="btn" style="background:#9b59b6;">✏️ Propone modifica</button>
                 <button onclick="rifiuta('{{ c.id }}')" class="btn" style="background:#e74c3c;">❌ Rifiuta</button>
                 <button onclick="elimina('{{ c.id }}')" class="btn" style="background:#000; color:white;">🗑️ Elimina</button>
             </td>
@@ -32,25 +31,6 @@
     </table>
 {% else %}
     <p>Nessuna consegna in attesa.</p>
-{% endif %}
-
-<h3>⏳ In attesa di conferma (tuo rilancio)</h3>
-{% if consegne_attesa %}
-    <table class="tabella">
-        <thead><tr><th>Cliente</th><th>Orario richiesto</th><th>Tu hai proposto</th><th>Totale</th></tr></thead>
-        <tbody>
-        {% for c in consegne_attesa %}
-        <tr>
-            <td>{{ c.cliente_nome }}</td>
-            <td>{{ c.orario_richiesto }}</td>
-            <td><strong>{{ c.orario_proposto_driver }}</strong></td>
-            <td>{{ c.totale_euro }}€</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-{% else %}
-    <p>Nessuna proposta in attesa.</p>
 {% endif %}
 
 <h3>📦 Consegne accettate</h3>
@@ -96,16 +76,6 @@ function accetta(id) {
     fetch(`/api/accetta_consegna/${id}`, {method: 'POST'})
         .then(() => location.reload());
 }
-function rilancia(id) {
-    let nuovo_orario = prompt("Proponi un nuovo orario (es. 20:30):");
-    if(nuovo_orario) {
-        fetch(`/api/rilancia_consegna/${id}`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({nuovo_orario: nuovo_orario})
-        }).then(() => location.reload());
-    }
-}
 function rifiuta(id) {
     let motivo = prompt("Motivo del rifiuto:");
     if(motivo) {
@@ -122,17 +92,21 @@ function elimina(id) {
             .then(() => location.reload());
     }
 }
-function proponiModifica(id) {
-    let nuovo_prezzo = prompt("Inserisci il nuovo prezzo (es. 5.00):");
-    if(nuovo_prezzo) {
-        let motivo = prompt("Motivo della modifica (es. consegna in campagna, piano alto):");
-        if(motivo) {
-            fetch(`/api/proponi_modifica/${id}`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({nuovo_prezzo: parseFloat(nuovo_prezzo), motivo: motivo})
-            }).then(() => location.reload());
-        }
+function propostaUnica(id) {
+    let nuovo_orario = prompt("Nuovo orario (es. 20:30) - lascia vuoto se non vuoi cambiarlo:");
+    let nuovo_prezzo = prompt("Nuovo prezzo (es. 5.00) - lascia vuoto se non vuoi cambiarlo:");
+    let motivo = prompt("Motivo della modifica:");
+    
+    if(motivo) {
+        fetch(`/api/proposta_unica/${id}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                nuovo_orario: nuovo_orario || null,
+                nuovo_prezzo: nuovo_prezzo ? parseFloat(nuovo_prezzo) : null,
+                motivo: motivo
+            })
+        }).then(() => location.reload());
     }
 }
 </script>

@@ -21,13 +21,9 @@
 
 <!-- RIEPILOGO NUMERICO -->
 <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
-    <div style="background: #f39c12; color: white; padding: 10px 15px; border-radius: 10px;">
-        <strong>💰 Modifica prezzo</strong><br>
-        {{ consegne_modifica | length }}
-    </div>
-    <div style="background: #3498db; color: white; padding: 10px 15px; border-radius: 10px;">
-        <strong>🔄 Rilanci</strong><br>
-        {{ consegne_attesa | length }}
+    <div style="background: #9b59b6; color: white; padding: 10px 15px; border-radius: 10px;">
+        <strong>✏️ Proposte</strong><br>
+        {{ consegne_proposte | length }}
     </div>
     <div style="background: #f39c12; color: white; padding: 10px 15px; border-radius: 10px;">
         <strong>✅ Accettate</strong><br>
@@ -45,56 +41,32 @@
 
 <a href="{{ url_for('nuova_consegna') }}" class="btn">➕ Nuova consegna</a>
 
-<!-- RICHIESTE DI MODIFICA PREZZO -->
-<h3>💰 Richieste di modifica prezzo</h3>
-{% if consegne_modifica %}
+<!-- RICHIESTE DI MODIFICA UNICHE -->
+<h3>✏️ Proposte di modifica dal driver</h3>
+{% if consegne_proposte %}
     <table class="tabella">
         <thead>
-            <tr><th>Cliente</th><th>Prezzo originale</th><th>Driver propone</th><th>Motivo</th><th>Azioni</th></tr>
+            <tr><th>Cliente</th><th>Orario attuale</th><th>Orario proposto</th><th>Prezzo attuale</th><th>Prezzo proposto</th><th>Motivo</th><th>Azioni</th></tr>
         </thead>
         <tbody>
-        {% for c in consegne_modifica %}
+        {% for c in consegne_proposte %}
         <tr>
             <td>{{ c.cliente_nome }}</td>
-            <td>{{ c.totale_euro }}€</td>
-            <td><strong>{{ c.prezzo_proposto }}€</strong></td>
-            <td>{{ c.motivo_proposta }}</td>
+            <td>{{ c.orario_richiesto or '--' }}</td>
+            <td><strong>{{ c.orario_proposto_driver or '--' }}</strong></td>
+            <td>{{ c.totale_euro }}€</strong></td>
+            <td><strong>{{ c.prezzo_proposto or '--' }}</strong></td>
+            <td>{{ c.motivo_proposta or 'Rilancio orario' }}</td>
             <td>
-                <button onclick="accettaModifica('{{ c.id }}')" class="btn">✅ Accetta</button>
-                <button onclick="rifiutaModifica('{{ c.id }}')" class="btn">❌ Rifiuta</button>
+                <button onclick="accettaProposta('{{ c.id }}')" class="btn">✅ Accetta tutto</button>
+                <button onclick="rifiutaProposta('{{ c.id }}')" class="btn">❌ Rifiuta</button>
             </td>
         </tr>
         {% endfor %}
         </tbody>
     </table>
 {% else %}
-    <p>Nessuna richiesta di modifica.</p>
-{% endif %}
-
-<!-- RICHIESTE DI RILANCIO ORARIO -->
-<h3>🔄 Richieste di rilancio orario</h3>
-{% if consegne_attesa %}
-    <table class="tabella">
-        <thead>
-            <tr><th>Cliente</th><th>Orario richiesto</th><th>Driver propone</th><th>Totale</th><th>Azioni</th></tr>
-        </thead>
-        <tbody>
-        {% for c in consegne_attesa %}
-        <tr>
-            <td>{{ c.cliente_nome }}</td>
-            <td>{{ c.orario_richiesto }}</td>
-            <td><strong>{{ c.orario_proposto_driver }}</strong></td>
-            <td>{{ c.totale_euro }}€</td>
-            <td>
-                <button onclick="accettaRilancio('{{ c.id }}')" class="btn">✅ Accetta</button>
-                <button onclick="cancellaConsegna('{{ c.id }}')" class="btn">❌ Cancella</button>
-            </td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-{% else %}
-    <p>Nessuna richiesta di rilancio.</p>
+    <p>Nessuna proposta di modifica.</p>
 {% endif %}
 
 <!-- CONSEGNE ACCETTATE (IN CORSO) -->
@@ -107,7 +79,7 @@
         </thead>
         <tbody>
         {% for c in consegne_accettate_lista %}
-        <tr>
+        <td>
             <td>{{ c.cliente_nome }}</td>
             <td>{{ c.cliente_indirizzo_consegna[:30] }}...</td>
             <td>{{ c.orario_richiesto or '--' }}</td>
@@ -170,23 +142,13 @@
 {% endif %}
 
 <script>
-function accettaRilancio(id) {
-    fetch(`/api/conferma_orario/${id}`, {method: 'POST'})
+function accettaProposta(id) {
+    fetch(`/api/accetta_proposta_unica/${id}`, {method: 'POST'})
         .then(() => location.reload());
 }
-function cancellaConsegna(id) {
-    if(confirm("Annullare la consegna?")) {
-        fetch(`/api/cancella_consegna/${id}`, {method: 'POST'})
-            .then(() => location.reload());
-    }
-}
-function accettaModifica(id) {
-    fetch(`/api/accetta_modifica/${id}`, {method: 'POST'})
-        .then(() => location.reload());
-}
-function rifiutaModifica(id) {
-    if(confirm("Rifiutare la proposta di modifica del prezzo?")) {
-        fetch(`/api/rifiuta_modifica/${id}`, {method: 'POST'})
+function rifiutaProposta(id) {
+    if(confirm("Rifiutare la proposta di modifica?")) {
+        fetch(`/api/rifiuta_proposta_unica/${id}`, {method: 'POST'})
             .then(() => location.reload());
     }
 }
