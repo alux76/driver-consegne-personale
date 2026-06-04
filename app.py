@@ -108,7 +108,6 @@ def api_proposta_unica(id):
             consegna.stato = 'attesa_modifica'
         db.session.commit()
         
-        # Notifica Telegram al commerciante
         invia_notifica_telegram(
             f"✏️ *PROPOSTA DI MODIFICA*\n"
             f"🏪 {consegna.comm_nome}\n"
@@ -125,11 +124,9 @@ def api_proposta_unica(id):
 def api_accetta_proposta_unica(id):
     consegna = Consegna.query.get_or_404(id)
     if consegna.stato in ['attesa_conferma', 'attesa_modifica']:
-        # Applica orario proposto
         if consegna.orario_proposto_driver:
             consegna.orario_richiesto = consegna.orario_proposto_driver
             consegna.orario_proposto_driver = None
-        # Applica prezzo proposto
         if consegna.prezzo_proposto:
             consegna.totale_euro = consegna.prezzo_proposto
             consegna.prezzo_proposto = None
@@ -188,8 +185,8 @@ def commerciante():
     telefono = request.args.get('telefono', '')
     if telefono:
         consegne_proposte = Consegna.query.filter(
-            Consegna.stato.in_(['attesa_conferma', 'attesa_modifica']), 
-            comm_telefono=telefono
+            Consegna.stato.in_(['attesa_conferma', 'attesa_modifica']),
+            Consegna.comm_telefono == telefono
         ).order_by(Consegna.data_creazione.desc()).all()
         consegne_accettate = Consegna.query.filter_by(stato='accettata', comm_telefono=telefono).order_by(Consegna.data_creazione.desc()).all()
         consegne_rifiutate = Consegna.query.filter_by(stato='rifiutata', comm_telefono=telefono).order_by(Consegna.data_creazione.desc()).all()
