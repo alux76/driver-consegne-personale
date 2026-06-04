@@ -10,7 +10,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'chiave-di-default')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://porto_subito_db_user:jUI6R2AUgVwcRfBQsor0dLVrbz3MYUTi@dpg-d8gskga8qa3s739349hg-a/porto_subito_db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -139,6 +139,10 @@ def admin():
 @app.route('/nuova', methods=['GET', 'POST'])
 def nuova_consegna():
     if request.method == 'POST':
+        # Converte il formato datetime-local (YYYY-MM-DDTHH:MM) in stringa leggibile
+        orario_raw = request.form.get('orario_richiesto', '')
+        orario_formattato = orario_raw.replace('T', ' ') if orario_raw else ''
+        
         consegna = Consegna(
             comm_nome=request.form['comm_nome'],
             comm_telefono=request.form['comm_telefono'],
@@ -149,7 +153,7 @@ def nuova_consegna():
             cliente_piano=int(request.form.get('cliente_piano', 0)),
             cliente_note=request.form.get('cliente_note', ''),
             fragile='fragile' in request.form,
-            orario_richiesto=request.form.get('orario_richiesto', ''),
+            orario_richiesto=orario_formattato,
             supplemento_extra=float(request.form.get('supplemento_extra', 0))
         )
         consegna.calcola_totale()
