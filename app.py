@@ -23,6 +23,7 @@ def invia_notifica_telegram(messaggio, titolo="Driver Consegne"):
     bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
     chat_id_driver = os.getenv('TELEGRAM_CHAT_ID_DRIVER')
     chat_id_moglie = os.getenv('TELEGRAM_CHAT_ID_MOGLIE')
+    chat_id_figlio = os.getenv('TELEGRAM_CHAT_ID_FIGLIO')
     
     if not bot_token:
         return
@@ -49,6 +50,15 @@ def invia_notifica_telegram(messaggio, titolo="Driver Consegne"):
         try:
             requests.post(url, data=data)
             print("📢 Notifica inviata a tua moglie")
+        except:
+            pass
+    
+    if chat_id_figlio:
+        data = data_template.copy()
+        data["chat_id"] = chat_id_figlio
+        try:
+            requests.post(url, data=data)
+            print("📢 Notifica inviata a tuo figlio")
         except:
             pass
 
