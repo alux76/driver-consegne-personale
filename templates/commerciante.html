@@ -21,6 +21,10 @@
 
 <!-- RIEPILOGO NUMERICO -->
 <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+    <div style="background: #f39c12; color: white; padding: 10px 15px; border-radius: 10px;">
+        <strong>💰 Modifica prezzo</strong><br>
+        {{ consegne_modifica | length }}
+    </div>
     <div style="background: #3498db; color: white; padding: 10px 15px; border-radius: 10px;">
         <strong>🔄 Rilanci</strong><br>
         {{ consegne_attesa | length }}
@@ -40,6 +44,32 @@
 </div>
 
 <a href="{{ url_for('nuova_consegna') }}" class="btn">➕ Nuova consegna</a>
+
+<!-- RICHIESTE DI MODIFICA PREZZO -->
+<h3>💰 Richieste di modifica prezzo</h3>
+{% if consegne_modifica %}
+    <table class="tabella">
+        <thead>
+            <tr><th>Cliente</th><th>Prezzo originale</th><th>Driver propone</th><th>Motivo</th><th>Azioni</th></tr>
+        </thead>
+        <tbody>
+        {% for c in consegne_modifica %}
+        <tr>
+            <td>{{ c.cliente_nome }}</td>
+            <td>{{ c.totale_euro }}€</td>
+            <td><strong>{{ c.prezzo_proposto }}€</strong></td>
+            <td>{{ c.motivo_proposta }}</td>
+            <td>
+                <button onclick="accettaModifica('{{ c.id }}')" class="btn">✅ Accetta</button>
+                <button onclick="rifiutaModifica('{{ c.id }}')" class="btn">❌ Rifiuta</button>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Nessuna richiesta di modifica.</p>
+{% endif %}
 
 <!-- RICHIESTE DI RILANCIO ORARIO -->
 <h3>🔄 Richieste di rilancio orario</h3>
@@ -147,6 +177,16 @@ function accettaRilancio(id) {
 function cancellaConsegna(id) {
     if(confirm("Annullare la consegna?")) {
         fetch(`/api/cancella_consegna/${id}`, {method: 'POST'})
+            .then(() => location.reload());
+    }
+}
+function accettaModifica(id) {
+    fetch(`/api/accetta_modifica/${id}`, {method: 'POST'})
+        .then(() => location.reload());
+}
+function rifiutaModifica(id) {
+    if(confirm("Rifiutare la proposta di modifica del prezzo?")) {
+        fetch(`/api/rifiuta_modifica/${id}`, {method: 'POST'})
             .then(() => location.reload());
     }
 }

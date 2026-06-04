@@ -8,7 +8,7 @@ class Consegna(db.Model):
     __tablename__ = 'consegne'
     
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    stato = db.Column(db.String(50), default='richiesta')
+    stato = db.Column(db.String(50), default='richiesta')  # richiesta, attesa_modifica, attesa_conferma, accettata, consegnata, cancellata, rifiutata
     data_creazione = db.Column(db.DateTime, default=datetime.utcnow)
     
     comm_nome = db.Column(db.String(100), nullable=False)
@@ -28,12 +28,17 @@ class Consegna(db.Model):
     supplemento_extra = db.Column(db.Float, default=0.0)
     totale_euro = db.Column(db.Float, default=0)
     
-    orario_richiesto = db.Column(db.String(10), nullable=True)
-    orario_proposto_driver = db.Column(db.String(10), nullable=True)
+    # RILANCIO ECONOMICO
+    prezzo_proposto = db.Column(db.Float, nullable=True)
+    motivo_proposta = db.Column(db.Text, nullable=True)
+    
+    orario_richiesto = db.Column(db.String(20), nullable=False, default='')
+    orario_proposto_driver = db.Column(db.String(20), nullable=True)
     
     driver_id = db.Column(db.String(100), nullable=True)
     accettata_il = db.Column(db.DateTime, nullable=True)
     pagata = db.Column(db.Boolean, default=False)
+    motivo_rifiuto = db.Column(db.Text, nullable=True)
     
     def calcola_totale(self):
         tariffa_base = self.tariffa_base if self.tariffa_base is not None else 3.0
@@ -65,5 +70,7 @@ class Consegna(db.Model):
             'totale_euro': self.totale_euro,
             'orario_richiesto': self.orario_richiesto,
             'orario_proposto_driver': self.orario_proposto_driver,
-            'pagata': self.pagata
+            'pagata': self.pagata,
+            'prezzo_proposto': self.prezzo_proposto,
+            'motivo_proposta': self.motivo_proposta
         }

@@ -21,7 +21,8 @@
             <td>{{ c.totale_euro }}€</td>
             <td>
                 <button onclick="accetta('{{ c.id }}')" class="btn">✅ Accetta</button>
-                <button onclick="rilancia('{{ c.id }}')" class="btn">🔄 Rilancia</button>
+                <button onclick="rilancia('{{ c.id }}')" class="btn">🔄 Rilancia orario</button>
+                <button onclick="proponiModifica('{{ c.id }}')" class="btn" style="background:#f39c12;">💰 Propone modifica</button>
                 <button onclick="rifiuta('{{ c.id }}')" class="btn" style="background:#e74c3c;">❌ Rifiuta</button>
                 <button onclick="elimina('{{ c.id }}')" class="btn" style="background:#000; color:white;">🗑️ Elimina</button>
             </td>
@@ -119,6 +120,19 @@ function elimina(id) {
     if(confirm("⚠️ Eliminare questa consegna? Operazione irreversibile!")) {
         fetch(`/api/elimina_consegna/${id}`, {method: 'POST'})
             .then(() => location.reload());
+    }
+}
+function proponiModifica(id) {
+    let nuovo_prezzo = prompt("Inserisci il nuovo prezzo (es. 5.00):");
+    if(nuovo_prezzo) {
+        let motivo = prompt("Motivo della modifica (es. consegna in campagna, piano alto):");
+        if(motivo) {
+            fetch(`/api/proponi_modifica/${id}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({nuovo_prezzo: parseFloat(nuovo_prezzo), motivo: motivo})
+            }).then(() => location.reload());
+        }
     }
 }
 </script>

@@ -85,8 +85,51 @@ def api_elimina_consegna(id):
     consegna = Consegna.query.get_or_404(id)
     db.session.delete(consegna)
     db.session.commit()
-    print(f"🗑️ Consegna {id} eliminata")
     return jsonify({'success': True})
+
+# ========== DRIVER PROPONE MODIFICA PREZZO ==========
+@app.route('/api/proponi_modifica/<id>', methods=['POST'])
+def api_proponi_modifica(id):
+    data = request.get_json()
+    nuovo_prezzo = data.get('nuovo_prezzo')
+    motivo = data.get('motivo')
+    
+    consegna = Consegna.query.get_or_404(id)
+    if consegna.stato == 'richiesta':
+        consegna.prezzo_proposto = nuovo_prezzo
+        consegna.motivo_proposta = motivo
+        consegna.stato = 'attesa_modifica'
+        db.session.commit()
+        return jsonify({'success': True})
+    return jsonify({'success': False}), 400
+
+# ========== COMMERCIANTE ACCETTA/RIFIUTA MODIFICA ==========
+@app.route('/api/accetta_modifica/<id>', methods=['POST'])
+def api_accetta_modifica(id):
+    consegna = Consegna.query.get_or_404(id)
+    if consegna.stato == 'attesa_modifica' and consegna.prezzo_proposto:
+        consegna.totale_euro = consegna.prezzo_proposto
+        consegna.prezzo_proposto = None
+        consegna.motivo_proposta = None
+        consegna.stato = 'accettata'
+        consegna.driver_id = 'driver_1'
+        consegna.accettata_il = datetime.now(timezone.utc)
+        db.session.commit()
+        invia_notifica_telegram(f"✅ *MODIFICA ACCETTATA*\n🏪 {consegna.comm_nome}\n👤 {consegna.cliente_nome}\n💰 Nuovo prezzo: {consegna.totale_euro}€")
+        return jsonify({'success': True})
+    return jsonify({'success': False}), 400
+
+@app.route('/api/rifiuta_modifica/<id>', methods=['POST'])
+def api_rifiuta_modifica(id):
+    consegna = Consegna.query.get_or_404(id)
+    if consegna.stato == 'attesa_modifica':
+        consegna.stato = 'richiesta'
+        consegna.prezzo_proposto = None
+        consegna.motivo_proposta = None
+        db.session.commit()
+        invia_notifica_telegram(f"❌ *MODIFICA RIFIUTATA*\n🏪 {consegna.comm_nome}\n👤 {consegna.cliente_nome}")
+        return jsonify({'success': True})
+    return jsonify({'success': False}), 400
 
 # ========== DASHBOARD DRIVER ==========
 @app.route('/')
@@ -102,20 +145,23 @@ def index():
                          consegne_accettate=consegne_accettate,
                          storico=storico)
 
-# ========== DASHBOARD COMMERCIANTE (filtra per telefono) ==========
+# ========== DASHBOARD COMMERCIANTE ==========
 @app.route('/commerciante')
 def commerciante():
     telefono = request.args.get('telefono', '')
     if telefono:
         consegne_attesa = Consegna.query.filter_by(stato='attesa_conferma', comm_telefono=telefono).order_by(Consegna.data_creazione.desc()).all()
+        consegne_modifica = Consegna.query.filter_by(stato='attesa_modifica', comm_telefono=telefono).order_by(Consegna.data_creazione.desc()).all()
         consegne_accettate = Consegna.query.filter_by(stato='accettata', comm_telefono=telefono).order_by(Consegna.data_creazione.desc()).all()
         consegne_rifiutate = Consegna.query.filter_by(stato='rifiutata', comm_telefono=telefono).order_by(Consegna.data_creazione.desc()).all()
     else:
         consegne_attesa = []
+        consegne_modifica = []
         consegne_accettate = []
         consegne_rifiutate = []
     return render_template('commerciante.html', 
                          consegne_attesa=consegne_attesa,
+                         consegne_modifica=consegne_modifica,
                          consegne_accettate=consegne_accettate,
                          consegne_rifiutate=consegne_rifiutate,
                          telefono=telefono)
@@ -139,7 +185,6 @@ def admin():
 @app.route('/nuova', methods=['GET', 'POST'])
 def nuova_consegna():
     if request.method == 'POST':
-        # Converte il formato datetime-local (YYYY-MM-DDTHH:MM) in stringa leggibile
         orario_raw = request.form.get('orario_richiesto', '')
         orario_formattato = orario_raw.replace('T', ' ') if orario_raw else ''
         
@@ -257,7 +302,7 @@ def api_conferma_orario(id):
 @app.route('/api/cancella_consegna/<id>', methods=['POST'])
 def api_cancella_consegna(id):
     consegna = Consegna.query.get_or_404(id)
-    if consegna.stato in ['richiesta', 'attesa_conferma']:
+    if consegna.stato in ['richiesta', 'attesa_conferma', 'attesa_modifica']:
         consegna.stato = 'cancellata'
         db.session.commit()
         invia_notifica_telegram(f"❌ *CONSEGNA CANCELLATA*\n🏪 {consegna.comm_nome}\n👤 {consegna.cliente_nome}")
