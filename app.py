@@ -4,13 +4,13 @@ from dotenv import load_dotenv
 import os
 import requests
 import traceback
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'chiave-di-default')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://porto_subito_db_user:jUI6R2AUgVwcRfBQsor0dLVrbz3MYUTi@dpg-d8gskga8qa3s739349hg-a/porto_subito_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -69,6 +69,34 @@ def force_rebuild():
     db.create_all()
     return "Database ricreato da zero!"
 
+# ========== HARD REBUILD ==========
+@app.route('/hard_rebuild')
+def hard_rebuild():
+    try:
+        db.drop_all()
+        db.create_all()
+        from sqlalchemy import inspect
+        inspector = inspect(db.engine)
+        columns = [c['name'] for c in inspector.get_columns('consegne')]
+        if 'prezzo_proposto' in columns and 'motivo_proposta' in columns and 'archiviata_il' in columns:
+            return "✅ Database ricreato con successo! Tutte le colonne sono presenti."
+        else:
+            return f"❌ Colonne mancanti: {columns}"
+    except Exception as e:
+        return f"❌ Errore: {str(e)}"
+
+# ========== PULISCI TUTTE LE CONSEGNE (CANCELLAZIONE FISICA) ==========
+@app.route('/api/pulisci_tutte', methods=['POST'])
+def api_pulisci_tutte():
+    """Cancella TUTTE le consegne fisicamente dal database"""
+    try:
+        num = Consegna.query.delete()
+        db.session.commit()
+        return jsonify({'success': True, 'cancellate': num})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ========== PAGINA DI ACCESSO COMMERCIANTE ==========
 @app.route('/accedi', methods=['GET', 'POST'])
 def accedi():
@@ -97,7 +125,7 @@ def api_elimina_consegna(id):
     db.session.commit()
     return jsonify({'success': True})
 
-# ========== PROPOSTA UNICA (orario e/o prezzo) ==========
+# ========== PROPOSTA UNICA ==========
 @app.route('/api/proposta_unica/<id>', methods=['POST'])
 def api_proposta_unica(id):
     data = request.get_json()
@@ -129,7 +157,7 @@ def api_proposta_unica(id):
         return jsonify({'success': True})
     return jsonify({'success': False}), 400
 
-# ========== COMMERCIANTE ACCETTA PROPOSTA UNICA ==========
+# ========== COMMERCIANTE ACCETTA PROPOSTA ==========
 @app.route('/api/accetta_proposta_unica/<id>', methods=['POST'])
 def api_accetta_proposta_unica(id):
     consegna = Consegna.query.get_or_404(id)
@@ -175,6 +203,32 @@ def api_rifiuta_proposta_unica(id):
         return jsonify({'success': True})
     return jsonify({'success': False}), 400
 
+# ========== ARCHIVIAZIONE ==========
+@app.route('/api/archivia_tutte', methods=['POST'])
+def api_archivia_tutte():
+    try:
+        consegne = Consegna.query.filter_by(stato='consegnata').all()
+        count = 0
+        for c in consegne:
+            c.stato = 'archiviata'
+            c.archiviata_il = datetime.now(timezone.utc)
+            count += 1
+        db.session.commit()
+        return jsonify({'success': True, 'archiviate': count})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/ripristina_consegna/<id>', methods=['POST'])
+def api_ripristina_consegna(id):
+    consegna = Consegna.query.get_or_404(id)
+    if consegna.stato == 'archiviata':
+        consegna.stato = 'consegnata'
+        consegna.archiviata_il = None
+        db.session.commit()
+        return jsonify({'success': True})
+    return jsonify({'success': False}), 400
+
 # ========== DASHBOARD DRIVER ==========
 @app.route('/')
 def index():
@@ -189,7 +243,7 @@ def index():
                          consegne_accettate=consegne_accettate,
                          storico=storico)
 
-# ========== DASHBOARD COMMERCIANTE ==========
+# ========== DASHBOARD COMMERCIANTE (CORRETTA) ==========
 @app.route('/commerciante')
 def commerciante():
     telefono = request.args.get('telefono', '')
@@ -198,7 +252,10 @@ def commerciante():
             Consegna.stato.in_(['attesa_conferma', 'attesa_modifica']),
             Consegna.comm_telefono == telefono
         ).order_by(Consegna.data_creazione.desc()).all()
-        consegne_accettate = Consegna.query.filter_by(stato='accettata', comm_telefono=telefono).order_by(Consegna.data_creazione.desc()).all()
+        consegne_accettate = Consegna.query.filter(
+            Consegna.comm_telefono == telefono,
+            Consegna.stato.in_(['accettata', 'consegnata', 'archiviata'])
+        ).order_by(Consegna.data_creazione.desc()).all()
         consegne_rifiutate = Consegna.query.filter_by(stato='rifiutata', comm_telefono=telefono).order_by(Consegna.data_creazione.desc()).all()
     else:
         consegne_proposte = []
@@ -216,7 +273,7 @@ def admin():
     consegne_richieste = Consegna.query.filter_by(stato='richiesta').order_by(Consegna.data_creazione.desc()).all()
     consegne_attesa = Consegna.query.filter_by(stato='attesa_conferma').order_by(Consegna.data_creazione.desc()).all()
     consegne_accettate = Consegna.query.filter_by(stato='accettata').order_by(Consegna.accettata_il.desc()).all()
-    storico = Consegna.query.filter(Consegna.stato.in_(['consegnata', 'cancellata', 'rifiutata'])).order_by(Consegna.data_creazione.desc()).all()
+    storico = Consegna.query.filter(Consegna.stato.in_(['consegnata', 'cancellata', 'rifiutata', 'archiviata'])).order_by(Consegna.data_creazione.desc()).all()
     
     return render_template('admin.html', 
                          consegne_richieste=consegne_richieste,
@@ -224,6 +281,33 @@ def admin():
                          consegne_accettate=consegne_accettate,
                          storico=storico,
                          today=datetime.now(timezone.utc))
+
+# ========== STATISTICHE ==========
+@app.route('/statistiche')
+def statistiche():
+    da_str = request.args.get('da', '')
+    a_str = request.args.get('a', '')
+    
+    query = Consegna.query
+    
+    if da_str:
+        da = datetime.strptime(da_str, '%Y-%m-%d')
+        query = query.filter(Consegna.data_creazione >= da)
+    if a_str:
+        a = datetime.strptime(a_str, '%Y-%m-%d') + timedelta(days=1)
+        query = query.filter(Consegna.data_creazione < a)
+    
+    consegne = query.order_by(Consegna.data_creazione.desc()).all()
+    totale_consegne = len(consegne)
+    totale_incasso = sum(c.totale_euro for c in consegne if c.pagata)
+    commercianti_attivi = len(set(c.comm_telefono for c in consegne))
+    
+    return render_template('statistiche.html',
+                         consegne=consegne,
+                         totale_consegne=totale_consegne,
+                         totale_incasso=totale_incasso,
+                         commercianti_attivi=commercianti_attivi,
+                         da=da_str, a=a_str)
 
 # ========== CREA NUOVA CONSEGNA ==========
 @app.route('/nuova', methods=['GET', 'POST'])

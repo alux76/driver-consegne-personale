@@ -5,7 +5,11 @@
 {% block content %}
 <h2>👑 Admin Dashboard - Tutte le consegne</h2>
 
-<button onclick="pulisciTutte()" class="btn" style="background:#e74c3c; margin-bottom:20px;">🗑️ Pulisci tutte le consegne</button>
+<div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+    <button onclick="pulisciTutte()" class="btn" style="background:#e74c3c;">🗑️ Pulisci tutte le consegne</button>
+    <button onclick="archiviaTutte()" class="btn" style="background:#27ae60;">📦 Archivia tutte le completate</button>
+    <a href="{{ url_for('statistiche') }}" class="btn" style="background:#3498db;">📊 Vedi statistiche</a>
+</div>
 
 <!-- RIEPILOGO INCASSI GIORNALIERI -->
 <h3>📊 Riepilogo incassi giornalieri</h3>
@@ -72,7 +76,7 @@
 {% if consegne_attesa %}
     <table class="tabella">
         <thead>
-            <tr><th>Commerciante</th><th>Cliente</th><th>Orario richiesto</th><th>Driver propone</th><th>Totale</th></tr>
+            <tr><th>Commerciante</th><th>Cliente</th><th>Orario richiesto</th><th>Driver propone</th><th>Totale</th><tr>
         </thead>
         <tbody>
         {% for c in consegne_attesa %}
@@ -131,6 +135,20 @@ function pulisciTutte() {
             .then(data => {
                 if(data.success) {
                     alert(`✅ Cancellate ${data.cancellate} consegne`);
+                    location.reload();
+                } else {
+                    alert("❌ Errore: " + data.error);
+                }
+            });
+    }
+}
+function archiviaTutte() {
+    if(confirm("Archiviare tutte le consegne completate (pagate)? Saranno spostate nell'archivio e non compariranno più nella dashboard.")) {
+        fetch('/api/archivia_tutte', {method: 'POST'})
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    alert(`✅ Archiviate ${data.archiviate} consegne`);
                     location.reload();
                 } else {
                     alert("❌ Errore: " + data.error);
