@@ -36,7 +36,7 @@
     <tbody>
     {% for c in consegne %}
     <tr>
-        <td>{% if c.data_creazione %}{{ c.data_creazione.strftime('%d/%m/%Y %H:%M') }}{% else %}--{% endif %}</td>
+        <td>{{ c.data_creazione.strftime('%d/%m/%Y %H:%M') if c.data_creazione else '--' }}</td>
         <td>{{ c.comm_nome }} ({{ c.comm_telefono }})</td>
         <td>{{ c.cliente_nome }}</td>
         <td>{{ c.totale_euro }}€</td>
