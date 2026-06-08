@@ -19,6 +19,21 @@
 
 <h2>🏪 Commerciante Dashboard</h2>
 
+<!-- AZIONI RAPIDE ORARI -->
+<div style="background: #eef; padding: 10px; margin-bottom: 15px; border-radius: 8px;">
+    <strong>⚡ Azioni rapide (orari suggeriti):</strong>
+    <button onclick="creaConsegnaVeloce('20:00')" class="btn">🍕 20:00</button>
+    <button onclick="creaConsegnaVeloce('20:30')" class="btn">🍕 20:30</button>
+    <button onclick="creaConsegnaVeloce('21:00')" class="btn">🍕 21:00</button>
+    <button onclick="creaConsegnaVeloce('21:30')" class="btn">🍕 21:30</button>
+</div>
+
+<script>
+function creaConsegnaVeloce(orario) {
+    window.location.href = "/nuova?orario=" + encodeURIComponent(orario);
+}
+</script>
+
 <!-- RIEPILOGO NUMERICO -->
 <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
     <div style="background: #9b59b6; color: white; padding: 10px 15px; border-radius: 10px;">
@@ -41,12 +56,12 @@
 
 <a href="{{ url_for('nuova_consegna') }}" class="btn">➕ Nuova consegna</a>
 
-<!-- RICHIESTE DI MODIFICA UNICHE -->
+<!-- RICHIESTE DI MODIFICA PREZZO/ORARIO -->
 <h3>✏️ Proposte di modifica dal driver</h3>
 {% if consegne_proposte %}
     <table class="tabella">
         <thead>
-            <tr><th>Cliente</th><th>Orario attuale</th><th>Orario proposto</th><th>Prezzo attuale</th><th>Prezzo proposto</th><th>Motivo</th><th>Azioni</th></tr>
+            <tr><th>Cliente</th><th>Orario attuale</th><th>Orario proposto</th><th>Prezzo attuale</th><th>Prezzo proposto</th><th>Motivo</th><th>Azioni</th></table>
         </thead>
         <tbody>
         {% for c in consegne_proposte %}
@@ -79,7 +94,7 @@
         </thead>
         <tbody>
         {% for c in consegne_accettate_lista %}
-        <td>
+        <tr>
             <td>{{ c.cliente_nome }}</td>
             <td>{{ c.cliente_indirizzo_consegna[:30] }}...</td>
             <td>{{ c.orario_richiesto or '--' }}</td>
