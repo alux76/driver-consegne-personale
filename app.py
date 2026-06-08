@@ -363,10 +363,32 @@ def statistiche():
                          commercianti_attivi=commercianti_attivi,
                          da=da_str, a=a_str)
 
-# ========== CREA NUOVA CONSEGNA (con autocompletamento e salvataggio cliente) ==========
+# ========== CREA NUOVA CONSEGNA CON AUTO-COMPILAMENTO CLIENTE ==========
 @app.route('/nuova', methods=['GET', 'POST'])
 def nuova_consegna():
     orario_pre = request.args.get('orario', '')
+    telefono_commerciante = request.args.get('telefono', '')
+    
+    # Valori di default per l'auto-compilamento del cliente
+    ultimo_cliente_nome = ''
+    ultimo_cliente_telefono = ''
+    ultimo_cliente_indirizzo = ''
+    ultimo_cliente_piano = 0
+    ultimo_cliente_note = ''
+    
+    # CERCA L'ULTIMO CLIENTE DI QUESTO COMMERCIANTE (anche di 10 giorni fa)
+    if telefono_commerciante:
+        ultima_consegna = Consegna.query.filter_by(
+            comm_telefono=telefono_commerciante
+        ).order_by(Consegna.data_creazione.desc()).first()
+        
+        if ultima_consegna:
+            ultimo_cliente_nome = ultima_consegna.cliente_nome
+            ultimo_cliente_telefono = ultima_consegna.cliente_telefono
+            ultimo_cliente_indirizzo = ultima_consegna.cliente_indirizzo_consegna
+            ultimo_cliente_piano = ultima_consegna.cliente_piano
+            ultimo_cliente_note = ultima_consegna.cliente_note
+            print(f"✅ Auto-compilato cliente: {ultimo_cliente_nome} per commerciante {telefono_commerciante}")
     
     if request.method == 'POST':
         orario_raw = request.form.get('orario_richiesto', '')
@@ -416,7 +438,14 @@ def nuova_consegna():
         flash('Consegna creata con successo!', 'success')
         return redirect(url_for('commerciante', telefono=consegna.comm_telefono))
     
-    return render_template('nuova_consegna.html', orario_pre=orario_pre)
+    return render_template('nuova_consegna.html', 
+                         orario_pre=orario_pre,
+                         telefono_commerciante=telefono_commerciante,
+                         ultimo_cliente_nome=ultimo_cliente_nome,
+                         ultimo_cliente_telefono=ultimo_cliente_telefono,
+                         ultimo_cliente_indirizzo=ultimo_cliente_indirizzo,
+                         ultimo_cliente_piano=ultimo_cliente_piano,
+                         ultimo_cliente_note=ultimo_cliente_note)
 
 # ========== DETTAGLIO CONSEGNA ==========
 @app.route('/consegna/<id>')
