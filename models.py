@@ -4,6 +4,23 @@ import uuid
 
 db = SQLAlchemy()
 
+class Commerciante(db.Model):
+    __tablename__ = 'commercianti'
+    
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    telefono = db.Column(db.String(20), nullable=False, unique=True)
+    nome = db.Column(db.String(100), nullable=False)
+    indirizzo_partenza = db.Column(db.String(200), nullable=True)
+    ultimo_accesso = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'telefono': self.telefono,
+            'nome': self.nome,
+            'indirizzo_partenza': self.indirizzo_partenza
+        }
+
 class Cliente(db.Model):
     __tablename__ = 'clienti'
     
@@ -11,7 +28,7 @@ class Cliente(db.Model):
     nome = db.Column(db.String(100), nullable=False)
     telefono = db.Column(db.String(20), nullable=False)
     indirizzo = db.Column(db.String(200), nullable=True)
-    comm_telefono = db.Column(db.String(20), nullable=False)  # telefono del commerciante
+    comm_telefono = db.Column(db.String(20), nullable=False)
     ultimo_utilizzo = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):

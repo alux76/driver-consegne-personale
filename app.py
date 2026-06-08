@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
-from models import db, Consegna, Cliente
+from models import db, Consegna, Cliente, Commerciante
 from dotenv import load_dotenv
 import os
 import requests
@@ -111,6 +111,45 @@ def api_cerca_clienti():
     ).order_by(Cliente.ultimo_utilizzo.desc()).limit(10).all()
     
     return jsonify([c.to_dict() for c in clienti])
+
+# ========== SALVA DATI COMMERCIANTE ==========
+@app.route('/api/salva_commerciante', methods=['POST'])
+def api_salva_commerciante():
+    data = request.get_json()
+    telefono = data.get('telefono')
+    nome = data.get('nome')
+    indirizzo = data.get('indirizzo_partenza')
+    
+    if not telefono or not nome:
+        return jsonify({'success': False, 'error': 'Telefono e nome richiesti'}), 400
+    
+    commerciante = Commerciante.query.filter_by(telefono=telefono).first()
+    if commerciante:
+        commerciante.nome = nome
+        commerciante.indirizzo_partenza = indirizzo
+        commerciante.ultimo_accesso = datetime.now(timezone.utc)
+    else:
+        commerciante = Commerciante(
+            telefono=telefono,
+            nome=nome,
+            indirizzo_partenza=indirizzo
+        )
+        db.session.add(commerciante)
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+# ========== CARICA DATI COMMERCIANTE ==========
+@app.route('/api/carica_commerciante', methods=['GET'])
+def api_carica_commerciante():
+    telefono = request.args.get('telefono', '')
+    if not telefono:
+        return jsonify({'success': False, 'error': 'Telefono richiesto'}), 400
+    
+    commerciante = Commerciante.query.filter_by(telefono=telefono).first()
+    if commerciante:
+        return jsonify({'success': True, 'dati': commerciante.to_dict()})
+    return jsonify({'success': False, 'dati': None})
 
 # ========== PAGINA DI ACCESSO COMMERCIANTE ==========
 @app.route('/accedi', methods=['GET', 'POST'])

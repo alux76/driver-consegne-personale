@@ -10,15 +10,15 @@
         <legend>📦 Dati commerciante (richiedente)</legend>
         
         <label style="font-weight: bold; color: black;">Nome attività:</label>
-        <input type="text" name="comm_nome" required>
+        <input type="text" name="comm_nome" id="comm_nome" required>
         <br><br>
         
         <label style="font-weight: bold; color: black;">Telefono:</label>
-        <input type="tel" name="comm_telefono" required>
+        <input type="tel" name="comm_telefono" id="comm_telefono" required>
         <br><br>
         
         <label style="font-weight: bold; color: black;">Indirizzo partenza:</label>
-        <input type="text" name="comm_indirizzo_partenza" required placeholder="es. Via Roma 1, Grottaglie">
+        <input type="text" name="comm_indirizzo_partenza" id="comm_indirizzo" required placeholder="es. Via Roma 1, Grottaglie">
         <br><br><br>
     </fieldset>
     
@@ -124,6 +124,37 @@
     
     aggiornaPreventivo();
     
+    // ========== CARICAMENTO DATI COMMERCIANTE ==========
+    const telefonoComm = document.getElementById('comm_telefono').value;
+    if (telefonoComm) {
+        fetch(`/api/carica_commerciante?telefono=${encodeURIComponent(telefonoComm)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.dati) {
+                    document.getElementById('comm_nome').value = data.dati.nome || '';
+                    document.getElementById('comm_indirizzo').value = data.dati.indirizzo_partenza || '';
+                }
+            });
+    }
+    
+    // Salva i dati del commerciante quando invia il form
+    const form = document.getElementById('formConsegna');
+    form.addEventListener('submit', function() {
+        const telefono = document.getElementById('comm_telefono').value;
+        const nome = document.getElementById('comm_nome').value;
+        const indirizzo = document.getElementById('comm_indirizzo').value;
+        
+        fetch('/api/salva_commerciante', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                telefono: telefono,
+                nome: nome,
+                indirizzo_partenza: indirizzo
+            })
+        });
+    });
+    
     // ========== AUTOCOMPLETAMENTO CLIENTI ==========
     const ricercaCliente = document.getElementById('ricerca_cliente');
     const risultatiDiv = document.getElementById('risultati_clienti');
@@ -141,7 +172,7 @@
         }
         
         timeoutId = setTimeout(() => {
-            const telefonoCommerciante = document.querySelector('input[name="comm_telefono"]').value;
+            const telefonoCommerciante = document.getElementById('comm_telefono').value;
             if (!telefonoCommerciante) return;
             
             fetch(`/api/cerca_clienti?q=${encodeURIComponent(query)}&telefono=${encodeURIComponent(telefonoCommerciante)}`)
