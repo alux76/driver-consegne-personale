@@ -124,10 +124,13 @@
     
     aggiornaPreventivo();
     
-    // ========== CARICAMENTO DATI COMMERCIANTE ==========
-    const telefonoComm = document.getElementById('comm_telefono').value;
-    if (telefonoComm) {
-        fetch(`/api/carica_commerciante?telefono=${encodeURIComponent(telefonoComm)}`)
+    // ========== CARICA TELEFONO COMMERCIANTE DALLA URL ==========
+    const urlParams = new URLSearchParams(window.location.search);
+    const telefonoDaUrl = urlParams.get('telefono');
+    if (telefonoDaUrl) {
+        document.getElementById('comm_telefono').value = telefonoDaUrl;
+        // Ricarica i dati del commerciante
+        fetch(`/api/carica_commerciante?telefono=${encodeURIComponent(telefonoDaUrl)}`)
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.dati) {
