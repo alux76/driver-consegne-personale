@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Statistiche{% endblock %}
+
+{% block content %}
+<h2>📊 Statistiche consegne</h2>
+
+<form method="GET" style="margin-bottom: 20px;">
+    <label>Da:</label>
+    <input type="date" name="da" value="{{ da }}">
+    <label>A:</label>
+    <input type="date" name="a" value="{{ a }}">
+    <button type="submit" class="btn">Filtra</button>
+</form>
+
+<div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 30px;">
+    <div style="background: #3498db; color: white; padding: 20px; border-radius: 10px; text-align: center;">
+        <h3>📦 Totale consegne</h3>
+        <p style="font-size: 32px;">{{ totale_consegne }}</p>
+    </div>
+    <div style="background: #27ae60; color: white; padding: 20px; border-radius: 10px; text-align: center;">
+        <h3>💰 Totale incassato</h3>
+        <p style="font-size: 32px;">{{ "%.2f"|format(totale_incasso) }}€</p>
+    </div>
+    <div style="background: #f39c12; color: white; padding: 20px; border-radius: 10px; text-align: center;">
+        <h3>🏪 Commercianti attivi</h3>
+        <p style="font-size: 32px;">{{ commercianti_attivi }}</p>
+    </div>
+</div>
+
+<h3>📋 Dettaglio consegne</h3>
+<table class="tabella">
+    <thead>
+        <tr><th>Data</th><th>Commerciante</th><th>Cliente</th><th>Totale</th><th>Stato</th></tr>
+    </thead>
+    <tbody>
+    {% for c in consegne %}
+    <tr>
+        <td>{% if c.data_creazione %}{{ c.data_creazione.strftime('%d/%m/%Y %H:%M') }}{% else %}--{% endif %}</td>
+        <td>{{ c.comm_nome }} ({{ c.comm_telefono }})</td>
+        <td>{{ c.cliente_nome }}</td>
+        <td>{{ c.totale_euro }}€</td>
+        <td>{{ c.stato }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<a href="{{ url_for('admin') }}" class="btn">← Torna all'admin</a>
+{% endblock %}
