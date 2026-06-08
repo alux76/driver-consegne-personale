@@ -8,34 +8,36 @@
 <form method="POST" id="formConsegna">
     <fieldset>
         <legend>📦 Dati commerciante (richiedente)</legend>
-        <label>Nome attività:</label>
+        
+        <label style="font-weight: bold; color: black;">Nome attività:</label>
         <input type="text" name="comm_nome" required>
         <br><br>
         
-        <label>Telefono:</label>
+        <label style="font-weight: bold; color: black;">Telefono:</label>
         <input type="tel" name="comm_telefono" required>
         <br><br>
         
-        <label>Indirizzo partenza:</label>
+        <label style="font-weight: bold; color: black;">Indirizzo partenza:</label>
         <input type="text" name="comm_indirizzo_partenza" required placeholder="es. Via Roma 1, Grottaglie">
         <br><br>
     </fieldset>
     
     <fieldset>
         <legend>👤 Cliente destinatario</legend>
-        <label>Nome cliente:</label>
+        
+        <label style="font-weight: bold; color: black;">Nome cliente:</label>
         <input type="text" name="cliente_nome" required>
         <br><br>
         
-        <label>Telefono cliente:</label>
+        <label style="font-weight: bold; color: black;">Telefono cliente:</label>
         <input type="tel" name="cliente_telefono" required>
         <br><br>
         
-        <label>Indirizzo consegna:</label>
+        <label style="font-weight: bold; color: black;">Indirizzo consegna:</label>
         <input type="text" name="cliente_indirizzo_consegna" required placeholder="es. Via Lecce 10, Grottaglie">
         <br><br>
         
-        <label>Piano:</label>
+        <label style="font-weight: bold; color: black;">Piano:</label>
         <select name="cliente_piano" id="piano">
             <option value="0">0 (terra)</option>
             <option value="1">1 (+0.50€)</option>
@@ -47,7 +49,7 @@
         <small>Dal piano 1: +0.50€ a piano</small>
         <br><br>
         
-        <label>Note:</label>
+        <label style="font-weight: bold; color: black;">Note:</label>
         <textarea name="cliente_note" rows="2"></textarea>
         <br><br>
     </fieldset>
@@ -55,7 +57,7 @@
     <fieldset>
         <legend>🚗 Dettagli consegna</legend>
         
-        <label>📌 Tipo consegna (extra):</label>
+        <label style="font-weight: bold; color: black;">📌 Tipo consegna (extra):</label>
         <select name="supplemento_extra" id="supplemento_extra">
             <option value="0">Standard (0€)</option>
             <option value="2">🌙 Notturna (dopo 22:00) +2€</option>
@@ -64,21 +66,13 @@
         </select>
         <br><br>
         
-        <label>
+        <label style="font-weight: bold; color: black;">
             <input type="checkbox" name="fragile" id="fragile">
             📦 Consegna fragile (+1€)
         </label>
         <br><br>
         
-        <label>📅 Data e ora consegna (obbligatorio):</label>
-        <select id="orario_rapido" onchange="impostaOrario(this.value)">
-            <option value="">-- Seleziona orario veloce --</option>
-            <option value="19:30">19:30</option>
-            <option value="20:00">20:00</option>
-            <option value="20:30">20:30</option>
-            <option value="21:00">21:00</option>
-        </select>
-        <br><br>
+        <label style="font-weight: bold; color: black;">📅 Data e ora consegna (obbligatorio):</label>
         <input type="datetime-local" name="orario_richiesto" id="orario_richiesto" required value="{{ orario_pre }}">
         <br><br>
         
@@ -95,16 +89,6 @@
     const fragileCheck = document.getElementById('fragile');
     const extraSelect = document.getElementById('supplemento_extra');
     const totaleSpan = document.getElementById('totale_anteprima');
-    const orarioInput = document.getElementById('orario_richiesto');
-    
-    function impostaOrario(orario) {
-        if (!orario) return;
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
-        orarioInput.value = `${yyyy}-${mm}-${dd}T${orario}`;
-    }
     
     function aggiornaPreventivo() {
         const piano = parseInt(pianoSelect.value) || 0;
