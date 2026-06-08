@@ -10,31 +10,40 @@
         <legend>📦 Dati commerciante (richiedente)</legend>
         <label>Nome attività:</label>
         <input type="text" name="comm_nome" required>
+        <br><br>
         
         <label>Telefono:</label>
         <input type="tel" name="comm_telefono" required>
+        <br><br>
         
         <label>Indirizzo partenza:</label>
         <input type="text" name="comm_indirizzo_partenza" required placeholder="es. Via Roma 1, Grottaglie">
+        <br><br>
     </fieldset>
     
     <fieldset>
         <legend>👤 Cliente destinatario</legend>
         <label>Nome cliente:</label>
         <input type="text" name="cliente_nome" required>
+        <br><br>
         
         <label>Telefono cliente:</label>
         <input type="tel" name="cliente_telefono" required>
+        <br><br>
         
         <label>Indirizzo consegna:</label>
         <input type="text" name="cliente_indirizzo_consegna" required placeholder="es. Via Lecce 10, Grottaglie">
+        <br><br>
         
         <label>Piano:</label>
         <input type="number" name="cliente_piano" id="piano" value="0" min="0">
+        <br>
         <small>Piano 0 = terra / nessun supplemento. Dal piano 1: +0.50€ a piano</small>
+        <br><br>
         
         <label>Note:</label>
         <textarea name="cliente_note" rows="2"></textarea>
+        <br><br>
     </fieldset>
     
     <fieldset>
@@ -47,14 +56,17 @@
             <option value="2">🎉 Festiva +2€</option>
             <option value="3">🏞️ Campagna (fuori paese) +3€</option>
         </select>
+        <br><br>
         
         <label>
             <input type="checkbox" name="fragile" id="fragile">
             📦 Consegna fragile (+1€)
         </label>
+        <br><br>
         
         <label>📅 Data e ora consegna (obbligatorio):</label>
         <input type="datetime-local" name="orario_richiesto" id="orario_richiesto" required value="{{ orario_pre }}">
+        <br><br>
         
         <div id="preventivo_anteprima" style="margin-top: 15px; padding: 10px; background: #d4edda; border-radius: 5px;">
             <strong>💰 Preventivo: </strong><span id="totale_anteprima">3.00</span>€
