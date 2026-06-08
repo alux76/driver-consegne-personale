@@ -377,19 +377,29 @@ def statistiche():
                          commercianti_attivi=commercianti_attivi,
                          da=da_str, a=a_str)
 
-# ========== CREA NUOVA CONSEGNA ==========
+# ========== CREA NUOVA CONSEGNA CON AUTO-COMPILAMENTO CLIENTE E EXTRA COSTI ==========
 @app.route('/nuova', methods=['GET', 'POST'])
 def nuova_consegna():
     orario_pre = request.args.get('orario', '')
     telefono_commerciante = request.args.get('telefono', '')
     
+    print(f"🔍 [DEBUG] ===== PAGINA NUOVA CONSEGNA =====")
+    print(f"🔍 [DEBUG] telefono_commerciante = '{telefono_commerciante}'")
+    
+    # Valori di default
     ultimo_cliente_nome = ''
     ultimo_cliente_telefono = ''
     ultimo_cliente_indirizzo = ''
     ultimo_cliente_piano = 0
     ultimo_cliente_note = ''
     
+    # CERCA L'ULTIMO CLIENTE
     if telefono_commerciante:
+        print(f"🔍 [DEBUG] Cerco l'ultimo cliente per commerciante: {telefono_commerciante}")
+        
+        totale_consegne = Consegna.query.filter_by(comm_telefono=telefono_commerciante).count()
+        print(f"🔍 [DEBUG] Totale consegne trovate: {totale_consegne}")
+        
         ultima_consegna = Consegna.query.filter_by(
             comm_telefono=telefono_commerciante
         ).order_by(Consegna.data_creazione.desc()).first()
@@ -400,10 +410,26 @@ def nuova_consegna():
             ultimo_cliente_indirizzo = ultima_consegna.cliente_indirizzo_consegna
             ultimo_cliente_piano = ultima_consegna.cliente_piano
             ultimo_cliente_note = ultima_consegna.cliente_note
+            print(f"✅ [DEBUG] Auto-compilato ULTIMO CLIENTE: '{ultimo_cliente_nome}'")
     
     if request.method == 'POST':
+        print(f"📝 [DEBUG] FORM INVIATO - Creazione nuova consegna")
         orario_raw = request.form.get('orario_richiesto', '')
         orario_formattato = orario_raw.replace('T', ' ') if orario_raw else ''
+        
+        # Calcolo supplemento extra con i nuovi extra costi
+        supplemento_extra = float(request.form.get('supplemento_extra', 0))
+        
+        # EXTRA COSTI: notturna (+5€), festivo (+3€), fuori mano (+4€)
+        if 'notturna' in request.form:
+            supplemento_extra += 5.0
+            print(f"💰 [DEBUG] +5€ per consegna notturna")
+        if 'festivo' in request.form:
+            supplemento_extra += 3.0
+            print(f"💰 [DEBUG] +3€ per giorno festivo")
+        if 'fuori_mano' in request.form:
+            supplemento_extra += 4.0
+            print(f"💰 [DEBUG] +4€ per zona fuori mano")
         
         consegna = Consegna(
             comm_nome=request.form['comm_nome'],
@@ -416,12 +442,13 @@ def nuova_consegna():
             cliente_note=request.form.get('cliente_note', ''),
             fragile='fragile' in request.form,
             orario_richiesto=orario_formattato,
-            supplemento_extra=float(request.form.get('supplemento_extra', 0))
+            supplemento_extra=supplemento_extra
         )
         consegna.calcola_totale()
         db.session.add(consegna)
         db.session.commit()
         
+        # SALVA O AGGIORNA IL CLIENTE
         cliente_esistente = Cliente.query.filter_by(
             comm_telefono=consegna.comm_telefono,
             telefono=consegna.cliente_telefono
@@ -431,6 +458,7 @@ def nuova_consegna():
             cliente_esistente.nome = consegna.cliente_nome
             cliente_esistente.indirizzo = consegna.cliente_indirizzo_consegna
             cliente_esistente.ultimo_utilizzo = datetime.now(timezone.utc)
+            print(f"✅ [DEBUG] Cliente esistente aggiornato: {cliente_esistente.nome}")
         else:
             nuovo_cliente = Cliente(
                 nome=consegna.cliente_nome,
@@ -439,6 +467,7 @@ def nuova_consegna():
                 comm_telefono=consegna.comm_telefono
             )
             db.session.add(nuovo_cliente)
+            print(f"✅ [DEBUG] Nuovo cliente creato: {nuovo_cliente.nome}")
         db.session.commit()
         
         invia_notifica_telegram(

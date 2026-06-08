@@ -12,6 +12,11 @@
         button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
         .prezzo-box { background: #28a745; color: white; padding: 15px; text-align: center; border-radius: 8px; margin: 20px 0; }
         .cliente-selector { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .required { color: red; }
+        .extra-options { background: #e9ecef; padding: 15px; border-radius: 8px; margin: 15px 0; }
+        .extra-options h4 { margin: 0 0 10px 0; }
+        .extra-options label { font-weight: normal; display: inline-block; margin-right: 15px; }
+        .extra-options input[type="checkbox"] { width: auto; margin-right: 5px; }
     </style>
 </head>
 <body>
@@ -23,19 +28,30 @@
                 <option value="">-- Seleziona --</option>
             </select>
         </div>
-        <form method="POST">
+        <form method="POST" id="consegnaForm">
             <input type="hidden" name="comm_telefono" id="comm_telefono" value="{{ telefono_commerciante }}">
-            <div class="form-group"><label>Nome Attività</label><input type="text" name="comm_nome" id="comm_nome" required></div>
-            <div class="form-group"><label>Indirizzo Partenza</label><input type="text" name="comm_indirizzo_partenza" id="comm_indirizzo_partenza" required></div>
+            <div class="form-group"><label>Nome Attività <span class="required">*</span></label><input type="text" name="comm_nome" id="comm_nome" required></div>
+            <div class="form-group"><label>Indirizzo Partenza <span class="required">*</span></label><input type="text" name="comm_indirizzo_partenza" id="comm_indirizzo_partenza" required></div>
             <hr>
-            <div class="form-group"><label>Nome Cliente</label><input type="text" name="cliente_nome" id="cliente_nome" value="{{ ultimo_cliente_nome }}" required></div>
-            <div class="form-group"><label>Telefono Cliente</label><input type="tel" name="cliente_telefono" id="cliente_telefono" value="{{ ultimo_cliente_telefono }}" required></div>
-            <div class="form-group"><label>Indirizzo Consegna</label><input type="text" name="cliente_indirizzo_consegna" id="cliente_indirizzo_consegna" value="{{ ultimo_cliente_indirizzo }}" required></div>
+            <div class="form-group"><label>Nome Cliente <span class="required">*</span></label><input type="text" name="cliente_nome" id="cliente_nome" value="{{ ultimo_cliente_nome }}" required></div>
+            <div class="form-group"><label>Telefono Cliente <span class="required">*</span></label><input type="tel" name="cliente_telefono" id="cliente_telefono" value="{{ ultimo_cliente_telefono }}" required></div>
+            <div class="form-group"><label>Indirizzo Consegna <span class="required">*</span></label><input type="text" name="cliente_indirizzo_consegna" id="cliente_indirizzo_consegna" value="{{ ultimo_cliente_indirizzo }}" required></div>
             <div class="form-group"><label>Piano</label><input type="number" name="cliente_piano" id="cliente_piano" value="{{ ultimo_cliente_piano }}"></div>
             <div class="form-group"><label>Note</label><textarea name="cliente_note" id="cliente_note">{{ ultimo_cliente_note }}</textarea></div>
-            <div class="form-group"><label>Orario</label><input type="datetime-local" name="orario_richiesto" value="{{ orario_pre }}"></div>
-            <div class="form-group"><label><input type="checkbox" name="fragile" id="fragile"> Pacco fragile (+1€)</label></div>
-            <div class="form-group"><label>Supplemento extra</label><input type="number" name="supplemento_extra" id="supplemento_extra" step="0.5" value="0"></div>
+            
+            <!-- DATA E ORA - OBBLIGATORIO -->
+            <div class="form-group"><label>Data e Ora consegna <span class="required">*</span></label><input type="datetime-local" name="orario_richiesto" id="orario_richiesto" value="{{ orario_pre }}" required></div>
+            
+            <!-- EXTRA COSTI -->
+            <div class="extra-options">
+                <h4>💰 Extra costi</h4>
+                <label><input type="checkbox" name="notturna" id="notturna"> 🌙 Consegna notturna (dopo le 22:00) - +5€</label><br>
+                <label><input type="checkbox" name="festivo" id="festivo"> 🎉 Giorno festivo - +3€</label><br>
+                <label><input type="checkbox" name="fuori_mano" id="fuori_mano"> 🚗 Zona extraurbana/fuori mano - +4€</label>
+            </div>
+            
+            <div class="form-group"><label><input type="checkbox" name="fragile" id="fragile"> 📦 Pacco fragile (+1€)</label></div>
+            <div class="form-group"><label>Supplemento extra manuale (€)</label><input type="number" name="supplemento_extra" id="supplemento_extra" step="0.5" value="0"></div>
             <div class="prezzo-box"><div>💰 TOTALE</div><div id="prezzoTotale">0 €</div></div>
             <button type="submit">Crea Consegna</button>
             <a href="/commerciante?telefono={{ telefono_commerciante }}">← Torna</a>
@@ -69,21 +85,44 @@
                 calcolaPrezzo();
             }
         });
+        
         function calcolaPrezzo() {
             let piano = document.getElementById('cliente_piano').value || 0;
-            let extra = document.getElementById('supplemento_extra').value || 0;
+            let extra = parseFloat(document.getElementById('supplemento_extra').value) || 0;
             let fragile = document.getElementById('fragile').checked;
-            fetch('/api/calcola_preventivo', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({piano:piano,extra:extra,fragile:fragile})})
-                .then(r=>r.json()).then(d=>document.getElementById('prezzoTotale').innerText=d.totale+' €');
+            let notturna = document.getElementById('notturna').checked;
+            let festivo = document.getElementById('festivo').checked;
+            let fuoriMano = document.getElementById('fuori_mano').checked;
+            
+            let extraNotturna = notturna ? 5 : 0;
+            let extraFestivo = festivo ? 3 : 0;
+            let extraFuoriMano = fuoriMano ? 4 : 0;
+            
+            fetch('/api/calcola_preventivo', {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({
+                    piano: piano, 
+                    extra: extra + extraNotturna + extraFestivo + extraFuoriMano, 
+                    fragile: fragile
+                })
+            })
+            .then(r=>r.json()).then(d=>document.getElementById('prezzoTotale').innerText=d.totale+' €');
         }
+        
         function caricaCommerciante() {
             let telefono = document.getElementById('comm_telefono').value;
             fetch(`/api/carica_commerciante?telefono=${telefono}`)
                 .then(r=>r.json()).then(d=>{if(d.success){document.getElementById('comm_nome').value=d.dati.nome||'';document.getElementById('comm_indirizzo_partenza').value=d.dati.indirizzo_partenza||''}});
         }
+        
         document.getElementById('cliente_piano').addEventListener('input',calcolaPrezzo);
         document.getElementById('supplemento_extra').addEventListener('input',calcolaPrezzo);
         document.getElementById('fragile').addEventListener('change',calcolaPrezzo);
+        document.getElementById('notturna').addEventListener('change',calcolaPrezzo);
+        document.getElementById('festivo').addEventListener('change',calcolaPrezzo);
+        document.getElementById('fuori_mano').addEventListener('change',calcolaPrezzo);
+        
         caricaCommerciante();
         caricaClienti();
         calcolaPrezzo();
