@@ -112,7 +112,7 @@ def api_cerca_clienti():
     
     return jsonify([c.to_dict() for c in clienti])
 
-# ========== API CLIENTI FREQUENTI ==========
+# ========== API CLIENTI FREQUENTI (TUTTI I CLIENTI DEL COMMERCIANTE) ==========
 @app.route('/api/clienti_frequenti', methods=['GET'])
 def api_clienti_frequenti():
     telefono_commerciante = request.args.get('telefono', '')
@@ -120,10 +120,10 @@ def api_clienti_frequenti():
     if not telefono_commerciante:
         return jsonify([])
     
-    # Prendi gli ultimi 5 clienti unici per questo commerciante
+    # Prendi TUTTI i clienti unici per questo commerciante (ordinati per ultimo utilizzo)
     clienti = Cliente.query.filter_by(
         comm_telefono=telefono_commerciante
-    ).order_by(Cliente.ultimo_utilizzo.desc()).limit(5).all()
+    ).order_by(Cliente.ultimo_utilizzo.desc()).all()
     
     return jsonify([c.to_dict() for c in clienti])
 
@@ -394,7 +394,7 @@ def nuova_consegna():
     ultimo_cliente_piano = 0
     ultimo_cliente_note = ''
     
-    # CERCA L'ULTIMO CLIENTE (anche se non è l'ultima consegna, ma l'ultimo cliente unico)
+    # CERCA L'ULTIMO CLIENTE
     if telefono_commerciante:
         print(f"🔍 [DEBUG] Cerco l'ultimo cliente per commerciante: {telefono_commerciante}")
         
@@ -414,7 +414,6 @@ def nuova_consegna():
             ultimo_cliente_piano = ultima_consegna.cliente_piano
             ultimo_cliente_note = ultima_consegna.cliente_note
             print(f"✅ [DEBUG] Auto-compilato ULTIMO CLIENTE: '{ultimo_cliente_nome}' (tel: {ultimo_cliente_telefono})")
-            print(f"✅ [DEBUG] Data consegna: {ultima_consegna.data_creazione}")
         else:
             print(f"❌ [DEBUG] Nessuna consegna trovata per {telefono_commerciante}")
     
