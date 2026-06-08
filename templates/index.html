@@ -17,60 +17,101 @@
         .badge { padding: 3px 8px; border-radius: 4px; font-size: 12px; }
         .badge-primary { background: #007bff; color: white; }
         .badge-success { background: #28a745; color: white; }
-        .btn { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; }
+        .badge-warning { background: #ffc107; color: #333; }
+        .btn { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; margin: 2px; }
         .btn-success { background: #28a745; color: white; }
         .btn-danger { background: #dc3545; color: white; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .btn-warning { background: #ffc107; color: #333; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .tab { padding: 10px 20px; cursor: pointer; background: #e9ecef; border: none; border-radius: 5px; }
         .tab.active { background: #007bff; color: white; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+        .commerciante-nome { font-weight: bold; font-size: 16px; color: #007bff; }
+        .proposta-box { background: #fff3cd; border-left: 4px solid #ffc107; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🚚 Driver Consegne</h1>
+            <p>Gestisci le consegne in tempo reale</p>
         </div>
         <div class="stats">
-            <div class="stat-card"><div class="stat-number">{{ consegne_richieste|length }}</div><div>Nuove</div></div>
-            <div class="stat-card"><div class="stat-number">{{ consegne_attesa|length }}</div><div>In attesa</div></div>
-            <div class="stat-card"><div class="stat-number">{{ consegne_accettate|length }}</div><div>In consegna</div></div>
+            <div class="stat-card"><div class="stat-number">{{ consegne_richieste|length }}</div><div>📋 Nuove</div></div>
+            <div class="stat-card"><div class="stat-number">{{ consegne_attesa|length }}</div><div>⏳ In attesa</div></div>
+            <div class="stat-card"><div class="stat-number">{{ consegne_accettate|length }}</div><div>🚚 In consegna</div></div>
         </div>
         <div class="section">
             <div class="tabs">
-                <button class="tab active" onclick="showTab('nuove')">Nuove</button>
-                <button class="tab" onclick="showTab('attesa')">In attesa</button>
-                <button class="tab" onclick="showTab('accettate')">In consegna</button>
+                <button class="tab active" onclick="showTab('nuove')">🆕 Nuove ({{ consegne_richieste|length }})</button>
+                <button class="tab" onclick="showTab('attesa')">⏳ Attesa ({{ consegne_attesa|length }})</button>
+                <button class="tab" onclick="showTab('accettate')">🚚 In consegna ({{ consegne_accettate|length }})</button>
             </div>
+            
+            <!-- Tab NUOVE CONSEGNE -->
             <div id="tab-nuove" class="tab-content active">
                 {% for c in consegne_richieste %}
                 <div class="consegna-card">
-                    <b>{{ c.comm_nome }}</b> → {{ c.cliente_nome }}<br>
-                    {{ c.cliente_indirizzo_consegna }}<br>
-                    <button onclick="accetta('{{ c.id }}')" class="btn btn-success">Accetta</button>
-                    <button onclick="rifiuta('{{ c.id }}')" class="btn btn-danger">Rifiuta</button>
+                    <div class="commerciante-nome">🏪 {{ c.comm_nome }}</div>
+                    <p>👤 <strong>Cliente:</strong> {{ c.cliente_nome }}</p>
+                    <p>📍 <strong>Consegna:</strong> {{ c.cliente_indirizzo_consegna }}</p>
+                    <p>🏢 <strong>Piano:</strong> {{ c.cliente_piano }}°</p>
+                    <p>📅 <strong>Orario richiesto:</strong> {{ c.orario_richiesto or '--' }}</p>
+                    <p>💰 <strong>Totale:</strong> {{ c.totale_euro }}€</p>
+                    {% if c.cliente_note %}<p>📝 <strong>Note:</strong> {{ c.cliente_note }}</p>{% endif %}
+                    <div class="consegna-actions">
+                        <button onclick="accetta('{{ c.id }}')" class="btn btn-success">✅ Accetta</button>
+                        <button onclick="mostraRilancio('{{ c.id }}', '{{ c.totale_euro }}', '{{ c.orario_richiesto }}')" class="btn btn-warning">🔄 Rilancia orario/prezzo</button>
+                        <button onclick="rifiuta('{{ c.id }}')" class="btn btn-danger">❌ Rifiuta</button>
+                        <a href="/consegna/{{ c.id }}" class="btn btn-secondary">🔍 Dettagli</a>
+                    </div>
                 </div>
                 {% endfor %}
             </div>
+            
+            <!-- Tab ATTESA CONFERMA (proposte inviate) -->
             <div id="tab-attesa" class="tab-content">
                 {% for c in consegne_attesa %}
-                <div class="consegna-card">
-                    <b>{{ c.comm_nome }}</b> → {{ c.cliente_nome }}<br>
-                    Proposta orario: {{ c.orario_proposto_driver or '--' }}
+                <div class="consegna-card proposta-box">
+                    <div class="commerciante-nome">🏪 {{ c.comm_nome }}</div>
+                    <p>👤 <strong>Cliente:</strong> {{ c.cliente_nome }}</p>
+                    <p>📍 <strong>Consegna:</strong> {{ c.cliente_indirizzo_consegna }}</p>
+                    <p>📅 <strong>Orario richiesto:</strong> {{ c.orario_richiesto or '--' }}</p>
+                    <p>💰 <strong>Prezzo originale:</strong> {{ c.totale_euro }}€</p>
+                    {% if c.orario_proposto_driver %}
+                    <p>🕐 <strong>Nuovo orario proposto:</strong> {{ c.orario_proposto_driver }}</p>
+                    {% endif %}
+                    {% if c.prezzo_proposto %}
+                    <p>💰 <strong>Nuovo prezzo proposto:</strong> {{ c.prezzo_proposto }}€</p>
+                    <p>📝 <strong>Motivo:</strong> {{ c.motivo_proposta }}</p>
+                    {% endif %}
+                    <span class="badge badge-warning">⏳ In attesa di conferma dal commerciante</span>
+                    <a href="/consegna/{{ c.id }}" class="btn btn-secondary">🔍 Dettagli</a>
                 </div>
                 {% endfor %}
             </div>
+            
+            <!-- Tab IN CONSEGNA -->
             <div id="tab-accettate" class="tab-content">
                 {% for c in consegne_accettate %}
                 <div class="consegna-card">
-                    <b>{{ c.comm_nome }}</b> → {{ c.cliente_nome }}<br>
-                    <button onclick="paga('{{ c.id }}')" class="btn btn-success">Segna pagata</button>
+                    <div class="commerciante-nome">🏪 {{ c.comm_nome }}</div>
+                    <p>👤 <strong>Cliente:</strong> {{ c.cliente_nome }}</p>
+                    <p>📍 <strong>Consegna:</strong> {{ c.cliente_indirizzo_consegna }}</p>
+                    <p>💰 <strong>Totale:</strong> {{ c.totale_euro }}€</p>
+                    <p>💳 <strong>Pagata:</strong> {{ 'Sì' if c.pagata else 'No' }}</p>
+                    {% if not c.pagata %}
+                    <button onclick="paga('{{ c.id }}')" class="btn btn-success">💰 Segna pagata</button>
+                    {% endif %}
+                    <a href="/consegna/{{ c.id }}" class="btn btn-secondary">🔍 Dettagli</a>
                 </div>
                 {% endfor %}
             </div>
         </div>
     </div>
+    
     <script>
         function showTab(name) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -78,9 +119,70 @@
             document.getElementById(`tab-${name}`).classList.add('active');
             event.target.classList.add('active');
         }
-        function accetta(id) { fetch(`/api/accetta_consegna/${id}`, {method:'POST'}).then(()=>location.reload()); }
-        function rifiuta(id) { fetch(`/api/rifiuta_consegna/${id}`, {method:'POST'}).then(()=>location.reload()); }
-        function paga(id) { fetch(`/api/paga_consegna/${id}`, {method:'POST'}).then(()=>location.reload()); }
+        
+        function accetta(id) { 
+            fetch(`/api/accetta_consegna/${id}`, {method:'POST'})
+                .then(()=>location.reload()); 
+        }
+        
+        function rifiuta(id) { 
+            let motivo = prompt('Inserisci il motivo del rifiuto:');
+            fetch(`/api/rifiuta_consegna/${id}`, {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({motivo:motivo||'Nessun motivo'})
+            }).then(()=>location.reload());
+        }
+        
+        function paga(id) { 
+            fetch(`/api/paga_consegna/${id}`, {method:'POST'})
+                .then(()=>location.reload()); 
+        }
+        
+        function mostraRilancio(id, prezzoOriginale, orarioOriginale) {
+            let tipo = prompt('Cosa vuoi modificare?\n1 - Solo ORARIO\n2 - Solo PREZZO\n3 - Entrambi');
+            
+            if (tipo === '1') {
+                let nuovoOrario = prompt('Inserisci il nuovo orario (es. 20:30):');
+                if (nuovoOrario) {
+                    inviaProposta(id, nuovoOrario, null, null);
+                }
+            } else if (tipo === '2') {
+                let nuovoPrezzo = prompt('Inserisci il nuovo prezzo (es. 15.00):');
+                if (nuovoPrezzo) {
+                    let motivo = prompt('Motivo della modifica prezzo:');
+                    inviaProposta(id, null, parseFloat(nuovoPrezzo), motivo);
+                }
+            } else if (tipo === '3') {
+                let nuovoOrario = prompt('Inserisci il nuovo orario (es. 20:30):');
+                let nuovoPrezzo = prompt('Inserisci il nuovo prezzo (es. 15.00):');
+                if (nuovoOrario || nuovoPrezzo) {
+                    let motivo = prompt('Motivo della modifica:');
+                    inviaProposta(id, nuovoOrario, parseFloat(nuovoPrezzo), motivo);
+                }
+            }
+        }
+        
+        function inviaProposta(id, nuovoOrario, nuovoPrezzo, motivo) {
+            fetch(`/api/proposta_unica/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nuovo_orario: nuovoOrario || null,
+                    nuovo_prezzo: nuovoPrezzo || null,
+                    motivo: motivo || 'Nessun motivo'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ Proposta inviata al commerciante!');
+                    location.reload();
+                } else {
+                    alert('❌ Errore nell\'invio della proposta');
+                }
+            });
+        }
     </script>
 </body>
 </html>
