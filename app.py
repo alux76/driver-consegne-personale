@@ -112,6 +112,21 @@ def api_cerca_clienti():
     
     return jsonify([c.to_dict() for c in clienti])
 
+# ========== API CLIENTI FREQUENTI ==========
+@app.route('/api/clienti_frequenti', methods=['GET'])
+def api_clienti_frequenti():
+    telefono_commerciante = request.args.get('telefono', '')
+    
+    if not telefono_commerciante:
+        return jsonify([])
+    
+    # Prendi gli ultimi 5 clienti unici per questo commerciante
+    clienti = Cliente.query.filter_by(
+        comm_telefono=telefono_commerciante
+    ).order_by(Cliente.ultimo_utilizzo.desc()).limit(5).all()
+    
+    return jsonify([c.to_dict() for c in clienti])
+
 # ========== SALVA DATI COMMERCIANTE ==========
 @app.route('/api/salva_commerciante', methods=['POST'])
 def api_salva_commerciante():
@@ -369,25 +384,25 @@ def nuova_consegna():
     orario_pre = request.args.get('orario', '')
     telefono_commerciante = request.args.get('telefono', '')
     
-    # LOG DI DEBUG
     print(f"🔍 [DEBUG] ===== PAGINA NUOVA CONSEGNA =====")
     print(f"🔍 [DEBUG] telefono_commerciante = '{telefono_commerciante}'")
     
-    # Valori di default per l'auto-compilamento del cliente
+    # Valori di default
     ultimo_cliente_nome = ''
     ultimo_cliente_telefono = ''
     ultimo_cliente_indirizzo = ''
     ultimo_cliente_piano = 0
     ultimo_cliente_note = ''
     
-    # CERCA L'ULTIMO CLIENTE DI QUESTO COMMERCIANTE
+    # CERCA L'ULTIMO CLIENTE (anche se non è l'ultima consegna, ma l'ultimo cliente unico)
     if telefono_commerciante:
-        print(f"🔍 [DEBUG] Cerco l'ultima consegna per commerciante: {telefono_commerciante}")
+        print(f"🔍 [DEBUG] Cerco l'ultimo cliente per commerciante: {telefono_commerciante}")
         
-        # Conta quante consegne ha fatto questo commerciante
+        # Conta consegne totali
         totale_consegne = Consegna.query.filter_by(comm_telefono=telefono_commerciante).count()
         print(f"🔍 [DEBUG] Totale consegne trovate: {totale_consegne}")
         
+        # Prendi l'ULTIMA CONSEGNA (quella più recente in assoluto)
         ultima_consegna = Consegna.query.filter_by(
             comm_telefono=telefono_commerciante
         ).order_by(Consegna.data_creazione.desc()).first()
@@ -398,12 +413,10 @@ def nuova_consegna():
             ultimo_cliente_indirizzo = ultima_consegna.cliente_indirizzo_consegna
             ultimo_cliente_piano = ultima_consegna.cliente_piano
             ultimo_cliente_note = ultima_consegna.cliente_note
-            print(f"✅ [DEBUG] Auto-compilato cliente: '{ultimo_cliente_nome}' (tel: {ultimo_cliente_telefono})")
-            print(f"✅ [DEBUG] Indirizzo: '{ultimo_cliente_indirizzo}'")
+            print(f"✅ [DEBUG] Auto-compilato ULTIMO CLIENTE: '{ultimo_cliente_nome}' (tel: {ultimo_cliente_telefono})")
+            print(f"✅ [DEBUG] Data consegna: {ultima_consegna.data_creazione}")
         else:
-            print(f"❌ [DEBUG] Nessuna consegna trovata per il commerciante {telefono_commerciante}")
-    else:
-        print(f"❌ [DEBUG] NESSUN TELEFONO fornito nell'URL! Usa ?telefono=123456789")
+            print(f"❌ [DEBUG] Nessuna consegna trovata per {telefono_commerciante}")
     
     if request.method == 'POST':
         print(f"📝 [DEBUG] FORM INVIATO - Creazione nuova consegna")
@@ -427,7 +440,7 @@ def nuova_consegna():
         db.session.add(consegna)
         db.session.commit()
         
-        # SALVA O AGGIORNA IL CLIENTE NELLA RUBRICA
+        # SALVA O AGGIORNA IL CLIENTE
         cliente_esistente = Cliente.query.filter_by(
             comm_telefono=consegna.comm_telefono,
             telefono=consegna.cliente_telefono
@@ -456,7 +469,6 @@ def nuova_consegna():
         flash('Consegna creata con successo!', 'success')
         return redirect(url_for('commerciante', telefono=consegna.comm_telefono))
     
-    print(f"🎨 [DEBUG] Rendering template con: ultimo_cliente_nome='{ultimo_cliente_nome}'")
     return render_template('nuova_consegna.html', 
                          orario_pre=orario_pre,
                          telefono_commerciante=telefono_commerciante,
