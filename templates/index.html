@@ -2,549 +2,85 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Driver Consegne - Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Consegne</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 0;
-            padding: 16px;
-            min-height: 100vh;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .header {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        
-        .header h1 {
-            margin: 0 0 8px 0;
-            color: #333;
-            font-size: 24px;
-        }
-        
-        .header p {
-            margin: 0;
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-        
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .stat-number {
-            font-size: 32px;
-            font-weight: bold;
-            color: #007bff;
-        }
-        
-        .stat-label {
-            font-size: 14px;
-            color: #666;
-            margin-top: 8px;
-        }
-        
-        .section {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .section h2 {
-            margin: 0 0 16px 0;
-            font-size: 20px;
-            color: #333;
-            border-left: 4px solid #007bff;
-            padding-left: 12px;
-        }
-        
-        .consegna-card {
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 12px;
-            transition: all 0.3s ease;
-            background: #fafafa;
-        }
-        
-        .consegna-card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
-        }
-        
-        .consegna-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        
-        .commerciante-nome {
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
-        }
-        
-        .badge {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .badge-primary {
-            background: #007bff;
-            color: white;
-        }
-        
-        .badge-warning {
-            background: #ffc107;
-            color: #333;
-        }
-        
-        .badge-success {
-            background: #28a745;
-            color: white;
-        }
-        
-        .badge-secondary {
-            background: #6c757d;
-            color: white;
-        }
-        
-        .consegna-details {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 12px;
-        }
-        
-        .consegna-details p {
-            margin: 6px 0;
-        }
-        
-        .consegna-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-success {
-            background: #28a745;
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background: #218838;
-            transform: translateY(-1px);
-        }
-        
-        .btn-danger {
-            background: #dc3545;
-            color: white;
-        }
-        
-        .btn-danger:hover {
-            background: #c82333;
-        }
-        
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-        
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-        
-        .btn-info {
-            background: #17a2b8;
-            color: white;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
-        
-        .admin-link {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #333;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 12px;
-            opacity: 0.7;
-            transition: opacity 0.3s;
-        }
-        
-        .admin-link:hover {
-            opacity: 1;
-        }
-        
-        @media (max-width: 768px) {
-            body {
-                padding: 12px;
-            }
-            
-            .stats {
-                grid-template-columns: 1fr;
-            }
-            
-            .consegna-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-        }
-        
-        /* Stile per le schede */
-        .tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #e0e0e0;
-            flex-wrap: wrap;
-        }
-        
-        .tab {
-            padding: 10px 20px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            color: #666;
-            transition: all 0.3s;
-        }
-        
-        .tab.active {
-            color: #007bff;
-            border-bottom: 2px solid #007bff;
-            margin-bottom: -2px;
-        }
-        
-        .tab:hover {
-            color: #007bff;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 20px; border-radius: 8px; text-align: center; }
+        .stat-number { font-size: 32px; font-weight: bold; color: #007bff; }
+        .section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .consegna-card { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 8px; }
+        .badge { padding: 3px 8px; border-radius: 4px; font-size: 12px; }
+        .badge-primary { background: #007bff; color: white; }
+        .badge-success { background: #28a745; color: white; }
+        .btn { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { padding: 10px 20px; cursor: pointer; background: #e9ecef; border: none; border-radius: 5px; }
+        .tab.active { background: #007bff; color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🚚 Driver Consegne</h1>
-            <p>Gestisci le consegne in tempo reale</p>
         </div>
-        
         <div class="stats">
-            <div class="stat-card">
-                <div class="stat-number" id="nuoveCount">{{ consegne_richieste|length }}</div>
-                <div class="stat-label">📋 Nuove consegne</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">{{ consegne_attesa|length }}</div>
-                <div class="stat-label">⏳ In attesa conferma</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">{{ consegne_accettate|length }}</div>
-                <div class="stat-label">🚚 In consegna</div>
-            </div>
+            <div class="stat-card"><div class="stat-number">{{ consegne_richieste|length }}</div><div>Nuove</div></div>
+            <div class="stat-card"><div class="stat-number">{{ consegne_attesa|length }}</div><div>In attesa</div></div>
+            <div class="stat-card"><div class="stat-number">{{ consegne_accettate|length }}</div><div>In consegna</div></div>
         </div>
-        
         <div class="section">
             <div class="tabs">
-                <button class="tab active" onclick="showTab('nuove')">🆕 Nuove ({{ consegne_richieste|length }})</button>
-                <button class="tab" onclick="showTab('attesa')">⏳ In attesa ({{ consegne_attesa|length }})</button>
-                <button class="tab" onclick="showTab('accettate')">🚚 In consegna ({{ consegne_accettate|length }})</button>
-                <button class="tab" onclick="showTab('storico')">📜 Storico</button>
+                <button class="tab active" onclick="showTab('nuove')">Nuove</button>
+                <button class="tab" onclick="showTab('attesa')">In attesa</button>
+                <button class="tab" onclick="showTab('accettate')">In consegna</button>
             </div>
-            
-            <!-- Tab Nuove Consegne -->
             <div id="tab-nuove" class="tab-content active">
-                {% if consegne_richieste %}
-                    {% for consegna in consegne_richieste %}
-                        <div class="consegna-card" id="consegna-{{ consegna.id }}">
-                            <div class="consegna-header">
-                                <span class="commerciante-nome">🏪 {{ consegna.comm_nome }}</span>
-                                <span class="badge badge-primary">NUOVA</span>
-                            </div>
-                            <div class="consegna-details">
-                                <p>👤 <strong>Cliente:</strong> {{ consegna.cliente_nome }}</p>
-                                <p>📍 <strong>Consegna:</strong> {{ consegna.cliente_indirizzo_consegna }}</p>
-                                <p>🏢 <strong>Piano:</strong> {{ consegna.cliente_piano }}°</p>
-                                <p>📅 <strong>Orario richiesto:</strong> {{ consegna.orario_richiesto or '--' }}</p>
-                                <p>💰 <strong>Totale:</strong> {{ consegna.totale_euro }}€</p>
-                                {% if consegna.cliente_note %}
-                                    <p>📝 <strong>Note:</strong> {{ consegna.cliente_note }}</p>
-                                {% endif %}
-                                {% if consegna.fragile %}
-                                    <p>⚠️ <strong>Pacco fragile</strong> (+1€)</p>
-                                {% endif %}
-                            </div>
-                            <div class="consegna-actions">
-                                <button onclick="accettaConsegna('{{ consegna.id }}')" class="btn btn-success">✅ Accetta</button>
-                                <button onclick="rifiutaConsegna('{{ consegna.id }}')" class="btn btn-danger">❌ Rifiuta</button>
-                                <a href="/consegna/{{ consegna.id }}" class="btn btn-secondary">🔍 Dettagli</a>
-                            </div>
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="empty-state">
-                        <p>📭 Nessuna nuova consegna</p>
-                    </div>
-                {% endif %}
+                {% for c in consegne_richieste %}
+                <div class="consegna-card">
+                    <b>{{ c.comm_nome }}</b> → {{ c.cliente_nome }}<br>
+                    {{ c.cliente_indirizzo_consegna }}<br>
+                    <button onclick="accetta('{{ c.id }}')" class="btn btn-success">Accetta</button>
+                    <button onclick="rifiuta('{{ c.id }}')" class="btn btn-danger">Rifiuta</button>
+                </div>
+                {% endfor %}
             </div>
-            
-            <!-- Tab In Attesa Conferma -->
             <div id="tab-attesa" class="tab-content">
-                {% if consegne_attesa %}
-                    {% for consegna in consegne_attesa %}
-                        <div class="consegna-card">
-                            <div class="consegna-header">
-                                <span class="commerciante-nome">🏪 {{ consegna.comm_nome }}</span>
-                                <span class="badge badge-warning">ATTESA CONFERMA</span>
-                            </div>
-                            <div class="consegna-details">
-                                <p>👤 <strong>Cliente:</strong> {{ consegna.cliente_nome }}</p>
-                                <p>📍 <strong>Consegna:</strong> {{ consegna.cliente_indirizzo_consegna }}</p>
-                                <p>🏢 <strong>Piano:</strong> {{ consegna.cliente_piano }}°</p>
-                                <p>📅 <strong>Orario proposto:</strong> {{ consegna.orario_proposto_driver or '--' }}</p>
-                                <p>💰 <strong>Totale:</strong> {{ consegna.totale_euro }}€</p>
-                            </div>
-                            <div class="consegna-actions">
-                                <a href="/consegna/{{ consegna.id }}" class="btn btn-secondary">🔍 Dettagli</a>
-                            </div>
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="empty-state">
-                        <p>⏳ Nessuna consegna in attesa</p>
-                    </div>
-                {% endif %}
+                {% for c in consegne_attesa %}
+                <div class="consegna-card">
+                    <b>{{ c.comm_nome }}</b> → {{ c.cliente_nome }}<br>
+                    Proposta orario: {{ c.orario_proposto_driver or '--' }}
+                </div>
+                {% endfor %}
             </div>
-            
-            <!-- Tab In Consegna (Accettate) -->
             <div id="tab-accettate" class="tab-content">
-                {% if consegne_accettate %}
-                    {% for consegna in consegne_accettate %}
-                        <div class="consegna-card">
-                            <div class="consegna-header">
-                                <span class="commerciante-nome">🏪 {{ consegna.comm_nome }}</span>
-                                <span class="badge badge-success">IN CONSEGNA</span>
-                            </div>
-                            <div class="consegna-details">
-                                <p>👤 <strong>Cliente:</strong> {{ consegna.cliente_nome }}</p>
-                                <p>📍 <strong>Consegna:</strong> {{ consegna.cliente_indirizzo_consegna }}</p>
-                                <p>🏢 <strong>Piano:</strong> {{ consegna.cliente_piano }}°</p>
-                                <p>💰 <strong>Totale:</strong> {{ consegna.totale_euro }}€</p>
-                                <p>💳 <strong>Pagata:</strong> {{ 'Sì' if consegna.pagata else 'No' }}</p>
-                            </div>
-                            <div class="consegna-actions">
-                                {% if not consegna.pagata %}
-                                    <button onclick="pagaConsegna('{{ consegna.id }}')" class="btn btn-success">💰 Segna come pagata</button>
-                                {% endif %}
-                                <a href="/consegna/{{ consegna.id }}" class="btn btn-secondary">🔍 Dettagli</a>
-                            </div>
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="empty-state">
-                        <p>🚚 Nessuna consegna in corso</p>
-                    </div>
-                {% endif %}
-            </div>
-            
-            <!-- Tab Storico -->
-            <div id="tab-storico" class="tab-content">
-                {% if storico %}
-                    {% for consegna in storico %}
-                        <div class="consegna-card">
-                            <div class="consegna-header">
-                                <span class="commerciante-nome">🏪 {{ consegna.comm_nome }}</span>
-                                <span class="badge badge-secondary">{{ consegna.stato|upper }}</span>
-                            </div>
-                            <div class="consegna-details">
-                                <p>👤 <strong>Cliente:</strong> {{ consegna.cliente_nome }}</p>
-                                <p>📍 <strong>Consegna:</strong> {{ consegna.cliente_indirizzo_consegna }}</p>
-                                <p>💰 <strong>Totale:</strong> {{ consegna.totale_euro }}€</p>
-                                <p>📅 <strong>Data:</strong> {{ consegna.data_creazione.strftime('%d/%m/%Y %H:%M') }}</p>
-                            </div>
-                            <div class="consegna-actions">
-                                <a href="/consegna/{{ consegna.id }}" class="btn btn-secondary">🔍 Dettagli</a>
-                            </div>
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="empty-state">
-                        <p>📜 Nessuno storico disponibile</p>
-                    </div>
-                {% endif %}
+                {% for c in consegne_accettate %}
+                <div class="consegna-card">
+                    <b>{{ c.comm_nome }}</b> → {{ c.cliente_nome }}<br>
+                    <button onclick="paga('{{ c.id }}')" class="btn btn-success">Segna pagata</button>
+                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
-    
-    <a href="/admin" class="admin-link">⚙️ Admin</a>
-    
     <script>
-        // Funzione per cambiare tab
-        function showTab(tabName) {
-            // Nascondi tutti i tab content
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            
-            // Rimuovi active da tutti i tab buttons
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Mostra il tab selezionato
-            document.getElementById(`tab-${tabName}`).classList.add('active');
-            
-            // Attiva il bottone cliccato
+        function showTab(name) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${name}`).classList.add('active');
             event.target.classList.add('active');
         }
-        
-        // Funzione per accettare consegna
-        function accettaConsegna(id) {
-            if (confirm('Sei sicuro di voler accettare questa consegna?')) {
-                fetch(`/api/accetta_consegna/${id}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('✅ Consegna accettata!');
-                        location.reload();
-                    } else {
-                        alert('❌ Errore nell\'accettare la consegna');
-                    }
-                })
-                .catch(error => {
-                    console.error('Errore:', error);
-                    alert('❌ Errore di comunicazione con il server');
-                });
-            }
-        }
-        
-        // Funzione per rifiutare consegna
-        function rifiutaConsegna(id) {
-            const motivo = prompt('Inserisci il motivo del rifiuto (opzionale):');
-            fetch(`/api/rifiuta_consegna/${id}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ motivo: motivo || 'Nessun motivo specificato' })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('❌ Consegna rifiutata');
-                    location.reload();
-                } else {
-                    alert('❌ Errore nel rifiutare la consegna');
-                }
-            })
-            .catch(error => {
-                console.error('Errore:', error);
-                alert('❌ Errore di comunicazione con il server');
-            });
-        }
-        
-        // Funzione per segnare consegna come pagata
-        function pagaConsegna(id) {
-            if (confirm('Confermi che la consegna è stata pagata?')) {
-                fetch(`/api/paga_consegna/${id}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('💰 Consegna segnata come pagata!');
-                        location.reload();
-                    } else {
-                        alert('❌ Errore nell\'aggiornare lo stato');
-                    }
-                })
-                .catch(error => {
-                    console.error('Errore:', error);
-                    alert('❌ Errore di comunicazione con il server');
-                });
-            }
-        }
-        
-        // Aggiornamento automatico ogni 30 secondi
-        setInterval(() => {
-            fetch('/api/nuove_consegne')
-                .then(response => response.json())
-                .then(data => {
-                    const nuoveCount = document.getElementById('nuoveCount');
-                    if (nuoveCount && data.nuove !== parseInt(nuoveCount.textContent)) {
-                        location.reload();
-                    }
-                })
-                .catch(error => console.error('Errore aggiornamento:', error));
-        }, 30000);
+        function accetta(id) { fetch(`/api/accetta_consegna/${id}`, {method:'POST'}).then(()=>location.reload()); }
+        function rifiuta(id) { fetch(`/api/rifiuta_consegna/${id}`, {method:'POST'}).then(()=>location.reload()); }
+        function paga(id) { fetch(`/api/paga_consegna/${id}`, {method:'POST'}).then(()=>location.reload()); }
     </script>
 </body>
 </html>

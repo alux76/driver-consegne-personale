@@ -120,7 +120,6 @@ def api_clienti_frequenti():
     if not telefono_commerciante:
         return jsonify([])
     
-    # Prendi TUTTI i clienti unici per questo commerciante (ordinati per ultimo utilizzo)
     clienti = Cliente.query.filter_by(
         comm_telefono=telefono_commerciante
     ).order_by(Cliente.ultimo_utilizzo.desc()).all()
@@ -378,31 +377,19 @@ def statistiche():
                          commercianti_attivi=commercianti_attivi,
                          da=da_str, a=a_str)
 
-# ========== CREA NUOVA CONSEGNA CON AUTO-COMPILAMENTO CLIENTE ==========
+# ========== CREA NUOVA CONSEGNA ==========
 @app.route('/nuova', methods=['GET', 'POST'])
 def nuova_consegna():
     orario_pre = request.args.get('orario', '')
     telefono_commerciante = request.args.get('telefono', '')
     
-    print(f"🔍 [DEBUG] ===== PAGINA NUOVA CONSEGNA =====")
-    print(f"🔍 [DEBUG] telefono_commerciante = '{telefono_commerciante}'")
-    
-    # Valori di default
     ultimo_cliente_nome = ''
     ultimo_cliente_telefono = ''
     ultimo_cliente_indirizzo = ''
     ultimo_cliente_piano = 0
     ultimo_cliente_note = ''
     
-    # CERCA L'ULTIMO CLIENTE
     if telefono_commerciante:
-        print(f"🔍 [DEBUG] Cerco l'ultimo cliente per commerciante: {telefono_commerciante}")
-        
-        # Conta consegne totali
-        totale_consegne = Consegna.query.filter_by(comm_telefono=telefono_commerciante).count()
-        print(f"🔍 [DEBUG] Totale consegne trovate: {totale_consegne}")
-        
-        # Prendi l'ULTIMA CONSEGNA (quella più recente in assoluto)
         ultima_consegna = Consegna.query.filter_by(
             comm_telefono=telefono_commerciante
         ).order_by(Consegna.data_creazione.desc()).first()
@@ -413,12 +400,8 @@ def nuova_consegna():
             ultimo_cliente_indirizzo = ultima_consegna.cliente_indirizzo_consegna
             ultimo_cliente_piano = ultima_consegna.cliente_piano
             ultimo_cliente_note = ultima_consegna.cliente_note
-            print(f"✅ [DEBUG] Auto-compilato ULTIMO CLIENTE: '{ultimo_cliente_nome}' (tel: {ultimo_cliente_telefono})")
-        else:
-            print(f"❌ [DEBUG] Nessuna consegna trovata per {telefono_commerciante}")
     
     if request.method == 'POST':
-        print(f"📝 [DEBUG] FORM INVIATO - Creazione nuova consegna")
         orario_raw = request.form.get('orario_richiesto', '')
         orario_formattato = orario_raw.replace('T', ' ') if orario_raw else ''
         
@@ -439,7 +422,6 @@ def nuova_consegna():
         db.session.add(consegna)
         db.session.commit()
         
-        # SALVA O AGGIORNA IL CLIENTE
         cliente_esistente = Cliente.query.filter_by(
             comm_telefono=consegna.comm_telefono,
             telefono=consegna.cliente_telefono
@@ -449,7 +431,6 @@ def nuova_consegna():
             cliente_esistente.nome = consegna.cliente_nome
             cliente_esistente.indirizzo = consegna.cliente_indirizzo_consegna
             cliente_esistente.ultimo_utilizzo = datetime.now(timezone.utc)
-            print(f"✅ [DEBUG] Cliente esistente aggiornato: {cliente_esistente.nome}")
         else:
             nuovo_cliente = Cliente(
                 nome=consegna.cliente_nome,
@@ -458,7 +439,6 @@ def nuova_consegna():
                 comm_telefono=consegna.comm_telefono
             )
             db.session.add(nuovo_cliente)
-            print(f"✅ [DEBUG] Nuovo cliente creato: {nuovo_cliente.nome}")
         db.session.commit()
         
         invia_notifica_telegram(

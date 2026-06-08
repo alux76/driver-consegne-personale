@@ -1,214 +1,92 @@
-{% extends "base.html" %}
-
-{% block title %}Nuova consegna{% endblock %}
-
-{% block content %}
-<h2>➕ Nuova consegna</h2>
-
-<form method="POST" id="formConsegna">
-    <fieldset>
-        <legend>📦 Dati commerciante (richiedente)</legend>
-        
-        <label style="font-weight: bold; color: black;">Nome attività:</label>
-        <input type="text" name="comm_nome" id="comm_nome" required>
-        <br><br>
-        
-        <label style="font-weight: bold; color: black;">Telefono:</label>
-        <input type="tel" name="comm_telefono" id="comm_telefono" required>
-        <br><br>
-        
-        <label style="font-weight: bold; color: black;">Indirizzo partenza:</label>
-        <input type="text" name="comm_indirizzo_partenza" id="comm_indirizzo" required placeholder="es. Via Roma 1, Grottaglie">
-        <br><br><br>
-    </fieldset>
-    
-    <fieldset>
-        <legend>👤 Cliente destinatario</legend>
-        
-        <label style="font-weight: bold; color: black;">Cerca cliente (opzionale):</label>
-        <input type="text" id="ricerca_cliente" placeholder="Inizia a scrivere il nome...">
-        <div id="risultati_clienti" style="border:1px solid #ccc; background:white; max-height:150px; overflow-y:auto; display:none;"></div>
-        <br><br>
-        
-        <label style="font-weight: bold; color: black;">Nome cliente:</label>
-        <input type="text" name="cliente_nome" id="cliente_nome" required>
-        <br><br>
-        
-        <label style="font-weight: bold; color: black;">Telefono cliente:</label>
-        <input type="tel" name="cliente_telefono" id="cliente_telefono" required>
-        <br><br>
-        
-        <label style="font-weight: bold; color: black;">Indirizzo consegna:</label>
-        <input type="text" name="cliente_indirizzo_consegna" id="cliente_indirizzo" required placeholder="es. Via Lecce 10, Grottaglie">
-        <br><br>
-        
-        <label style="font-weight: bold; color: black;">Piano:</label>
-        <select name="cliente_piano" id="piano">
-            <option value="0">0 (terra)</option>
-            <option value="1">1 (+0.50€)</option>
-            <option value="2">2 (+1.00€)</option>
-            <option value="3">3 (+1.50€)</option>
-            <option value="4">4 (+2.00€)</option>
-        </select>
-        <br>
-        <small>Dal piano 1: +0.50€ a piano</small>
-        <br><br>
-        
-        <label style="font-weight: bold; color: black;">Note:</label>
-        <textarea name="cliente_note" rows="2"></textarea>
-        <br><br><br>
-    </fieldset>
-    
-    <fieldset>
-        <legend>🚗 Dettagli consegna</legend>
-        
-        <label style="font-weight: bold; color: black;">📌 Tipo consegna (extra):</label>
-        <select name="supplemento_extra" id="supplemento_extra">
-            <option value="0">Standard (0€)</option>
-            <option value="2">🌙 Notturna (dopo 22:00) +2€</option>
-            <option value="2">🎉 Festiva +2€</option>
-            <option value="3">🏞️ Campagna (fuori paese) +3€</option>
-        </select>
-        <br><br>
-        
-        <label style="font-weight: bold; color: black;">
-            <input type="checkbox" name="fragile" id="fragile">
-            📦 Consegna fragile (+1€)
-        </label>
-        <br><br>
-        
-        <label style="font-weight: bold; color: black;">📅 Data e ora consegna (obbligatorio):</label>
-        <input type="datetime-local" name="orario_richiesto" id="orario_richiesto" required value="{{ orario_pre }}">
-        <br><br>
-        
-        <div id="preventivo_anteprima" style="margin-top: 15px; padding: 10px; background: #d4edda; border-radius: 5px;">
-            <strong>💰 Preventivo: </strong><span id="totale_anteprima">3.00</span>€
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuova Consegna</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        .prezzo-box { background: #28a745; color: white; padding: 15px; text-align: center; border-radius: 8px; margin: 20px 0; }
+        .cliente-selector { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📦 Nuova Consegna</h1>
+        <div class="cliente-selector">
+            <label>📋 Seleziona cliente esistente</label>
+            <select id="cliente_select">
+                <option value="">-- Seleziona --</option>
+            </select>
         </div>
-    </fieldset>
-    
-    <button type="submit" class="btn">✅ Crea consegna</button>
-</form>
-
-<script>
-    const pianoSelect = document.getElementById('piano');
-    const fragileCheck = document.getElementById('fragile');
-    const extraSelect = document.getElementById('supplemento_extra');
-    const totaleSpan = document.getElementById('totale_anteprima');
-    
-    function aggiornaPreventivo() {
-        const piano = parseInt(pianoSelect.value) || 0;
-        const fragile = fragileCheck.checked;
-        const extra = parseFloat(extraSelect.value) || 0;
-        
-        fetch('/api/calcola_preventivo', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({piano: piano, fragile: fragile, extra: extra})
-        })
-        .then(res => res.json())
-        .then(data => {
-            totaleSpan.textContent = data.totale;
-        })
-        .catch(() => {
-            let totale = 3.0;
-            if (piano > 0) totale += piano * 0.50;
-            if (fragile) totale += 1.0;
-            totale += extra;
-            totaleSpan.textContent = totale.toFixed(2);
-        });
-    }
-    
-    pianoSelect.addEventListener('change', aggiornaPreventivo);
-    fragileCheck.addEventListener('change', aggiornaPreventivo);
-    extraSelect.addEventListener('change', aggiornaPreventivo);
-    
-    aggiornaPreventivo();
-    
-    // ========== CARICA TELEFONO COMMERCIANTE DALLA URL ==========
-    const urlParams = new URLSearchParams(window.location.search);
-    const telefonoDaUrl = urlParams.get('telefono');
-    if (telefonoDaUrl) {
-        document.getElementById('comm_telefono').value = telefonoDaUrl;
-        // Ricarica i dati del commerciante
-        fetch(`/api/carica_commerciante?telefono=${encodeURIComponent(telefonoDaUrl)}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.success && data.dati) {
-                    document.getElementById('comm_nome').value = data.dati.nome || '';
-                    document.getElementById('comm_indirizzo').value = data.dati.indirizzo_partenza || '';
-                }
-            });
-    }
-    
-    // Salva i dati del commerciante quando invia il form
-    const form = document.getElementById('formConsegna');
-    form.addEventListener('submit', function() {
-        const telefono = document.getElementById('comm_telefono').value;
-        const nome = document.getElementById('comm_nome').value;
-        const indirizzo = document.getElementById('comm_indirizzo').value;
-        
-        fetch('/api/salva_commerciante', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                telefono: telefono,
-                nome: nome,
-                indirizzo_partenza: indirizzo
-            })
-        });
-    });
-    
-    // ========== AUTOCOMPLETAMENTO CLIENTI ==========
-    const ricercaCliente = document.getElementById('ricerca_cliente');
-    const risultatiDiv = document.getElementById('risultati_clienti');
-    const clienteNome = document.getElementById('cliente_nome');
-    const clienteTelefono = document.getElementById('cliente_telefono');
-    const clienteIndirizzo = document.getElementById('cliente_indirizzo');
-    let timeoutId;
-    
-    ricercaCliente.addEventListener('input', function() {
-        clearTimeout(timeoutId);
-        const query = this.value.trim();
-        if (query.length < 2) {
-            risultatiDiv.style.display = 'none';
-            return;
-        }
-        
-        timeoutId = setTimeout(() => {
-            const telefonoCommerciante = document.getElementById('comm_telefono').value;
-            if (!telefonoCommerciante) return;
-            
-            fetch(`/api/cerca_clienti?q=${encodeURIComponent(query)}&telefono=${encodeURIComponent(telefonoCommerciante)}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.length === 0) {
-                        risultatiDiv.style.display = 'none';
-                        return;
-                    }
-                    risultatiDiv.innerHTML = data.map(c => 
-                        `<div style="padding: 8px; cursor: pointer; border-bottom:1px solid #eee;" 
-                              onclick="selezionaCliente('${c.nome}', '${c.telefono}', '${c.indirizzo || ''}')">
-                            <strong>${c.nome}</strong> - ${c.telefono}<br>
-                            <small>${c.indirizzo || 'Indirizzo non salvato'}</small>
-                         </div>`
-                    ).join('');
-                    risultatiDiv.style.display = 'block';
+        <form method="POST">
+            <input type="hidden" name="comm_telefono" id="comm_telefono" value="{{ telefono_commerciante }}">
+            <div class="form-group"><label>Nome Attività</label><input type="text" name="comm_nome" id="comm_nome" required></div>
+            <div class="form-group"><label>Indirizzo Partenza</label><input type="text" name="comm_indirizzo_partenza" id="comm_indirizzo_partenza" required></div>
+            <hr>
+            <div class="form-group"><label>Nome Cliente</label><input type="text" name="cliente_nome" id="cliente_nome" value="{{ ultimo_cliente_nome }}" required></div>
+            <div class="form-group"><label>Telefono Cliente</label><input type="tel" name="cliente_telefono" id="cliente_telefono" value="{{ ultimo_cliente_telefono }}" required></div>
+            <div class="form-group"><label>Indirizzo Consegna</label><input type="text" name="cliente_indirizzo_consegna" id="cliente_indirizzo_consegna" value="{{ ultimo_cliente_indirizzo }}" required></div>
+            <div class="form-group"><label>Piano</label><input type="number" name="cliente_piano" id="cliente_piano" value="{{ ultimo_cliente_piano }}"></div>
+            <div class="form-group"><label>Note</label><textarea name="cliente_note" id="cliente_note">{{ ultimo_cliente_note }}</textarea></div>
+            <div class="form-group"><label>Orario</label><input type="datetime-local" name="orario_richiesto" value="{{ orario_pre }}"></div>
+            <div class="form-group"><label><input type="checkbox" name="fragile" id="fragile"> Pacco fragile (+1€)</label></div>
+            <div class="form-group"><label>Supplemento extra</label><input type="number" name="supplemento_extra" id="supplemento_extra" step="0.5" value="0"></div>
+            <div class="prezzo-box"><div>💰 TOTALE</div><div id="prezzoTotale">0 €</div></div>
+            <button type="submit">Crea Consegna</button>
+            <a href="/commerciante?telefono={{ telefono_commerciante }}">← Torna</a>
+        </form>
+    </div>
+    <script>
+        function caricaClienti() {
+            let telefono = document.getElementById('comm_telefono').value;
+            fetch(`/api/clienti_frequenti?telefono=${telefono}`)
+                .then(r => r.json())
+                .then(clienti => {
+                    let select = document.getElementById('cliente_select');
+                    select.innerHTML = '<option value="">-- Seleziona --</option>';
+                    clienti.forEach(c => {
+                        let opt = document.createElement('option');
+                        opt.value = c.telefono;
+                        opt.innerHTML = `${c.nome} - ${c.telefono}`;
+                        opt.dataset.nome = c.nome;
+                        opt.dataset.telefono = c.telefono;
+                        opt.dataset.indirizzo = c.indirizzo || '';
+                        select.appendChild(opt);
+                    });
                 });
-        }, 300);
-    });
-    
-    function selezionaCliente(nome, telefono, indirizzo) {
-        clienteNome.value = nome;
-        clienteTelefono.value = telefono;
-        clienteIndirizzo.value = indirizzo;
-        ricercaCliente.value = '';
-        risultatiDiv.style.display = 'none';
-    }
-    
-    document.addEventListener('click', function(e) {
-        if (!ricercaCliente.contains(e.target) && !risultatiDiv.contains(e.target)) {
-            risultatiDiv.style.display = 'none';
         }
-    });
-</script>
-{% endblock %}
+        document.getElementById('cliente_select').addEventListener('change', function() {
+            let opt = this.options[this.selectedIndex];
+            if(opt.value) {
+                document.getElementById('cliente_nome').value = opt.dataset.nome;
+                document.getElementById('cliente_telefono').value = opt.dataset.telefono;
+                document.getElementById('cliente_indirizzo_consegna').value = opt.dataset.indirizzo;
+                calcolaPrezzo();
+            }
+        });
+        function calcolaPrezzo() {
+            let piano = document.getElementById('cliente_piano').value || 0;
+            let extra = document.getElementById('supplemento_extra').value || 0;
+            let fragile = document.getElementById('fragile').checked;
+            fetch('/api/calcola_preventivo', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({piano:piano,extra:extra,fragile:fragile})})
+                .then(r=>r.json()).then(d=>document.getElementById('prezzoTotale').innerText=d.totale+' €');
+        }
+        function caricaCommerciante() {
+            let telefono = document.getElementById('comm_telefono').value;
+            fetch(`/api/carica_commerciante?telefono=${telefono}`)
+                .then(r=>r.json()).then(d=>{if(d.success){document.getElementById('comm_nome').value=d.dati.nome||'';document.getElementById('comm_indirizzo_partenza').value=d.dati.indirizzo_partenza||''}});
+        }
+        document.getElementById('cliente_piano').addEventListener('input',calcolaPrezzo);
+        document.getElementById('supplemento_extra').addEventListener('input',calcolaPrezzo);
+        document.getElementById('fragile').addEventListener('change',calcolaPrezzo);
+        caricaCommerciante();
+        caricaClienti();
+        calcolaPrezzo();
+    </script>
+</body>
+</html>
