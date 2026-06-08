@@ -1,171 +1,423 @@
-{% extends "base.html" %}
-
-{% block title %}Commerciante Dashboard{% endblock %}
-
-{% block content %}
-<script>
-    const telefono = "{{ telefono }}";
-    if (telefono) {
-        localStorage.setItem("telefono_commerciante", telefono);
-    }
-    setTimeout(function() {
-        location.reload();
-    }, 10000);
-</script>
-
-<div style="background: #f0f0f0; padding: 5px; margin-bottom: 10px; font-size: 12px; text-align: center; border-radius: 5px;">
-    🔄 Questa pagina si aggiorna automaticamente ogni 10 secondi
-</div>
-
-<h2>🏪 Commerciante Dashboard</h2>
-
-<!-- AZIONI RAPIDE ORARI -->
-<div style="background: #eef; padding: 10px; margin-bottom: 15px; border-radius: 8px;">
-    <strong>⚡ Azioni rapide (orari suggeriti):</strong>
-    <button onclick="creaConsegnaVeloce('20:00')" class="btn">🍕 20:00</button>
-    <button onclick="creaConsegnaVeloce('20:30')" class="btn">🍕 20:30</button>
-    <button onclick="creaConsegnaVeloce('21:00')" class="btn">🍕 21:00</button>
-    <button onclick="creaConsegnaVeloce('21:30')" class="btn">🍕 21:30</button>
-</div>
-
-<script>
-function creaConsegnaVeloce(orario) {
-    window.location.href = "/nuova?orario=" + encodeURIComponent(orario);
-}
-</script>
-
-<!-- RIEPILOGO NUMERICO -->
-<div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
-    <div style="background: #9b59b6; color: white; padding: 10px 15px; border-radius: 10px;">
-        <strong>✏️ Proposte</strong><br>
-        {{ consegne_proposte | length }}
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Area Commerciante - Driver Consegne</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 16px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            margin: 0 0 8px 0;
+            font-size: 24px;
+        }
+        
+        .header p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            text-align: center;
+            flex: 1;
+            min-width: 140px;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .section h2 {
+            margin: 0 0 16px 0;
+            font-size: 20px;
+            color: #333;
+            border-left: 4px solid #007bff;
+            padding-left: 12px;
+        }
+        
+        .consegna-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+        
+        .consegna-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .consegna-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .cliente-nome {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-warning {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .badge-info {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .badge-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .badge-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .consegna-details {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+        
+        .consegna-details p {
+            margin: 6px 0;
+        }
+        
+        .consegna-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+            min-width: auto;
+            flex: 0 0 auto;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        .proposta-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .proposta-details {
+            background: #fff8e1;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 12px 0;
+            font-size: 13px;
+        }
+        
+        .proposta-details p {
+            margin: 4px 0;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .consegna-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏪 Area Commerciante</h1>
+            <p>Benvenuto! Gestisci le tue consegne</p>
+            <p style="font-size: 12px; margin-top: 8px;">📞 Telefono: {{ telefono }}</p>
+        </div>
+        
+        <div class="actions">
+            <a href="/nuova?telefono={{ telefono }}" class="btn btn-primary">➕ Nuova Consegna</a>
+            <a href="/accedi" class="btn btn-secondary">🔌 Esci</a>
+        </div>
+        
+        <!-- Proposte in attesa di conferma -->
+        <div class="section">
+            <h2>📝 Proposte in attesa</h2>
+            {% if consegne_proposte %}
+                {% for consegna in consegne_proposte %}
+                    <div class="consegna-card proposta-box">
+                        <div class="consegna-header">
+                            <span class="cliente-nome">👤 {{ consegna.cliente_nome }}</span>
+                            <span class="badge badge-warning">
+                                {% if consegna.stato == 'attesa_conferma' %}
+                                    ⏰ ATTESA CONFERMA ORARIO
+                                {% else %}
+                                    💰 ATTESA MODIFICA PREZZO
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="consegna-details">
+                            <p>📍 <strong>Consegna:</strong> {{ consegna.cliente_indirizzo_consegna }}</p>
+                            <p>🏢 <strong>Piano:</strong> {{ consegna.cliente_piano }}°</p>
+                            <p>📅 <strong>Orario richiesto:</strong> {{ consegna.orario_richiesto or '--' }}</p>
+                            <p>💰 <strong>Prezzo originale:</strong> {{ consegna.totale_euro }}€</p>
+                            
+                            {% if consegna.orario_proposto_driver %}
+                            <div class="proposta-details">
+                                <strong>✏️ PROPOSTA DRIVER:</strong>
+                                <p>🕐 Nuovo orario: {{ consegna.orario_proposto_driver }}</p>
+                            </div>
+                            {% endif %}
+                            
+                            {% if consegna.prezzo_proposto %}
+                            <div class="proposta-details">
+                                <strong>✏️ PROPOSTA DRIVER:</strong>
+                                <p>💰 Nuovo prezzo: {{ consegna.prezzo_proposto }}€</p>
+                                <p>📝 Motivo: {{ consegna.motivo_proposta }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="consegna-actions">
+                            <button onclick="accettaProposta('{{ consegna.id }}')" class="btn btn-success btn-sm">✅ Accetta proposta</button>
+                            <button onclick="rifiutaProposta('{{ consegna.id }}')" class="btn btn-danger btn-sm">❌ Rifiuta</button>
+                            <a href="/consegna/{{ consegna.id }}" class="btn btn-secondary btn-sm">🔍 Dettagli</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <p>📭 Nessuna proposta in attesa</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Consegnate e Accettate -->
+        <div class="section">
+            <h2>✅ Consegne effettuate</h2>
+            {% if consegne_accettate %}
+                {% for consegna in consegne_accettate %}
+                    <div class="consegna-card">
+                        <div class="consegna-header">
+                            <span class="cliente-nome">👤 {{ consegna.cliente_nome }}</span>
+                            <span class="badge badge-success">
+                                {% if consegna.stato == 'consegnata' %}
+                                    ✅ CONSEGNATA
+                                {% elif consegna.stato == 'accettata' %}
+                                    🚚 ACCETTATA
+                                {% else %}
+                                    📦 {{ consegna.stato|upper }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="consegna-details">
+                            <p>📍 <strong>Consegna:</strong> {{ consegna.cliente_indirizzo_consegna }}</p>
+                            <p>💰 <strong>Totale:</strong> {{ consegna.totale_euro }}€</p>
+                            <p>💳 <strong>Pagata:</strong> {{ 'Sì' if consegna.pagata else 'No' }}</p>
+                            {% if consegna.accettata_il %}
+                                <p>📅 <strong>Accettata il:</strong> {{ consegna.accettata_il.strftime('%d/%m/%Y %H:%M') }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="consegna-actions">
+                            <a href="/consegna/{{ consegna.id }}" class="btn btn-secondary btn-sm">🔍 Dettagli</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <p>📭 Nessuna consegna effettuata</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Consegnate Rifiutate -->
+        <div class="section">
+            <h2>❌ Consegne rifiutate</h2>
+            {% if consegne_rifiutate %}
+                {% for consegna in consegne_rifiutate %}
+                    <div class="consegna-card">
+                        <div class="consegna-header">
+                            <span class="cliente-nome">👤 {{ consegna.cliente_nome }}</span>
+                            <span class="badge badge-secondary">❌ RIFIUTATA</span>
+                        </div>
+                        <div class="consegna-details">
+                            <p>📍 <strong>Consegna:</strong> {{ consegna.cliente_indirizzo_consegna }}</p>
+                            <p>💰 <strong>Totale:</strong> {{ consegna.totale_euro }}€</p>
+                            {% if consegna.motivo_rifiuto %}
+                                <p>📝 <strong>Motivo:</strong> {{ consegna.motivo_rifiuto }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="consegna-actions">
+                            <a href="/consegna/{{ consegna.id }}" class="btn btn-secondary btn-sm">🔍 Dettagli</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <p>📭 Nessuna consegna rifiutata</p>
+                </div>
+            {% endif %}
+        </div>
     </div>
-    <div style="background: #f39c12; color: white; padding: 10px 15px; border-radius: 10px;">
-        <strong>✅ Accettate</strong><br>
-        {{ consegne_accettate | selectattr("pagata", "equalto", false) | selectattr("stato", "equalto", "accettata") | list | length }}
-    </div>
-    <div style="background: #e74c3c; color: white; padding: 10px 15px; border-radius: 10px;">
-        <strong>❌ Rifiutate</strong><br>
-        {{ consegne_rifiutate | length }}
-    </div>
-    <div style="background: #27ae60; color: white; padding: 10px 15px; border-radius: 10px;">
-        <strong>💰 Completate</strong><br>
-        {{ consegne_accettate | selectattr("pagata", "equalto", true) | list | length }}
-    </div>
-</div>
-
-<a href="{{ url_for('nuova_consegna') }}" class="btn">➕ Nuova consegna</a>
-
-<!-- RICHIESTE DI MODIFICA PREZZO/ORARIO -->
-<h3>✏️ Proposte di modifica dal driver</h3>
-{% if consegne_proposte %}
-    <table class="tabella">
-        <thead>
-            <tr><th>Cliente</th><th>Orario attuale</th><th>Orario proposto</th><th>Prezzo attuale</th><th>Prezzo proposto</th><th>Motivo</th><th>Azioni</th></table>
-        </thead>
-        <tbody>
-        {% for c in consegne_proposte %}
-        <tr>
-            <td>{{ c.cliente_nome }}</td>
-            <td>{{ c.orario_richiesto or '--' }}</td>
-            <td><strong>{{ c.orario_proposto_driver or '--' }}</strong></td>
-            <td>{{ c.totale_euro }}€</strong></td>
-            <td><strong>{{ c.prezzo_proposto or '--' }}</strong></td>
-            <td>{{ c.motivo_proposta or 'Rilancio orario' }}</td>
-            <td>
-                <button onclick="accettaProposta('{{ c.id }}')" class="btn">✅ Accetta tutto</button>
-                <button onclick="rifiutaProposta('{{ c.id }}')" class="btn">❌ Rifiuta</button>
-            </td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-{% else %}
-    <p>Nessuna proposta di modifica.</p>
-{% endif %}
-
-<!-- CONSEGNE ACCETTATE (IN CORSO) -->
-<h3>✅ Consegne accettate (in corso)</h3>
-{% set consegne_accettate_lista = consegne_accettate | selectattr("pagata", "equalto", false) | selectattr("stato", "equalto", "accettata") | list %}
-{% if consegne_accettate_lista %}
-    <table class="tabella">
-        <thead>
-            <tr><th>Cliente</th><th>Indirizzo</th><th>Orario</th><th>Totale</th><th>Stato</th><th>Azioni</th></tr>
-        </thead>
-        <tbody>
-        {% for c in consegne_accettate_lista %}
-        <tr>
-            <td>{{ c.cliente_nome }}</td>
-            <td>{{ c.cliente_indirizzo_consegna[:30] }}...</td>
-            <td>{{ c.orario_richiesto or '--' }}</td>
-            <td>{{ c.totale_euro }}€</td>
-            <td>✅ Accettata</strong></td>
-            <td><a href="{{ url_for('dettaglio_consegna', id=c.id) }}" class="btn">🔍 Dettaglio</a></td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-{% else %}
-    <p>Nessuna consegna accettata in corso.</p>
-{% endif %}
-
-<!-- CONSEGNE RIFIUTATE -->
-<h3>❌ Consegne rifiutate</h3>
-{% if consegne_rifiutate %}
-    <table class="tabella">
-        <thead>
-            <tr><th>Cliente</th><th>Indirizzo</th><th>Orario</th><th>Totale</th><th>Motivo</th></tr>
-        </thead>
-        <tbody>
-        {% for c in consegne_rifiutate %}
-        <tr>
-            <td>{{ c.cliente_nome }}</td>
-            <td>{{ c.cliente_indirizzo_consegna[:30] }}...</td>
-            <td>{{ c.orario_richiesto or '--' }}</td>
-            <td>{{ c.totale_euro }}€</td>
-            <td>{{ c.motivo_rifiuto or 'Nessun motivo' }}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-{% else %}
-    <p>Nessuna consegna rifiutata.</p>
-{% endif %}
-
-<!-- STORICO CONSEGNE (COMPLETATE) -->
-<h3>📜 Storico consegne (completate)</h3>
-{% set storico = consegne_accettate | selectattr("pagata", "equalto", true) | list %}
-{% if storico %}
-    <table class="tabella">
-        <thead>
-            <tr><th>Cliente</th><th>Indirizzo</th><th>Orario</th><th>Totale</th><th>Pagata</th></tr>
-        </thead>
-        <tbody>
-        {% for c in storico %}
-        <tr>
-            <td>{{ c.cliente_nome }}</td>
-            <td>{{ c.cliente_indirizzo_consegna[:30] }}...</td>
-            <td>{{ c.orario_richiesto or '--' }}</td>
-            <td>{{ c.totale_euro }}€</td>
-            <td>{{ "✅ Sì" if c.pagata else "❌ No" }}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-{% else %}
-    <p>Nessuna consegna completata.</p>
-{% endif %}
-
-<script>
-function accettaProposta(id) {
-    fetch(`/api/accetta_proposta_unica/${id}`, {method: 'POST'})
-        .then(() => location.reload());
-}
-function rifiutaProposta(id) {
-    if(confirm("Rifiutare la proposta di modifica?")) {
-        fetch(`/api/rifiuta_proposta_unica/${id}`, {method: 'POST'})
-            .then(() => location.reload());
-    }
-}
-</script>
-{% endblock %}
+    
+    <script>
+        function accettaProposta(id) {
+            if (confirm('Sei sicuro di voler accettare questa proposta?')) {
+                fetch(`/api/accetta_proposta_unica/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('✅ Proposta accettata! La consegna è stata confermata.');
+                        location.reload();
+                    } else {
+                        alert('❌ Errore nell\'accettare la proposta');
+                    }
+                })
+                .catch(error => {
+                    console.error('Errore:', error);
+                    alert('❌ Errore di comunicazione con il server');
+                });
+            }
+        }
+        
+        function rifiutaProposta(id) {
+            if (confirm('Sei sicuro di voler rifiutare questa proposta?')) {
+                fetch(`/api/rifiuta_proposta_unica/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('❌ Proposta rifiutata');
+                        location.reload();
+                    } else {
+                        alert('❌ Errore nel rifiutare la proposta');
+                    }
+                })
+                .catch(error => {
+                    console.error('Errore:', error);
+                    alert('❌ Errore di comunicazione con il server');
+                });
+            }
+        }
+    </script>
+</body>
+</html>
