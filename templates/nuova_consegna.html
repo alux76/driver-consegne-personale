@@ -36,9 +36,15 @@
         <br><br>
         
         <label>Piano:</label>
-        <input type="number" name="cliente_piano" id="piano" value="0" min="0">
+        <select name="cliente_piano" id="piano">
+            <option value="0">0 (terra)</option>
+            <option value="1">1 (+0.50€)</option>
+            <option value="2">2 (+1.00€)</option>
+            <option value="3">3 (+1.50€)</option>
+            <option value="4">4 (+2.00€)</option>
+        </select>
         <br>
-        <small>Piano 0 = terra / nessun supplemento. Dal piano 1: +0.50€ a piano</small>
+        <small>Dal piano 1: +0.50€ a piano</small>
         <br><br>
         
         <label>Note:</label>
@@ -65,6 +71,14 @@
         <br><br>
         
         <label>📅 Data e ora consegna (obbligatorio):</label>
+        <select id="orario_rapido" onchange="impostaOrario(this.value)">
+            <option value="">-- Seleziona orario veloce --</option>
+            <option value="19:30">19:30</option>
+            <option value="20:00">20:00</option>
+            <option value="20:30">20:30</option>
+            <option value="21:00">21:00</option>
+        </select>
+        <br><br>
         <input type="datetime-local" name="orario_richiesto" id="orario_richiesto" required value="{{ orario_pre }}">
         <br><br>
         
@@ -77,13 +91,23 @@
 </form>
 
 <script>
-    const pianoInput = document.getElementById('piano');
+    const pianoSelect = document.getElementById('piano');
     const fragileCheck = document.getElementById('fragile');
     const extraSelect = document.getElementById('supplemento_extra');
     const totaleSpan = document.getElementById('totale_anteprima');
+    const orarioInput = document.getElementById('orario_richiesto');
+    
+    function impostaOrario(orario) {
+        if (!orario) return;
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        orarioInput.value = `${yyyy}-${mm}-${dd}T${orario}`;
+    }
     
     function aggiornaPreventivo() {
-        const piano = parseInt(pianoInput.value) || 0;
+        const piano = parseInt(pianoSelect.value) || 0;
         const fragile = fragileCheck.checked;
         const extra = parseFloat(extraSelect.value) || 0;
         
@@ -105,7 +129,7 @@
         });
     }
     
-    pianoInput.addEventListener('input', aggiornaPreventivo);
+    pianoSelect.addEventListener('change', aggiornaPreventivo);
     fragileCheck.addEventListener('change', aggiornaPreventivo);
     extraSelect.addEventListener('change', aggiornaPreventivo);
     
