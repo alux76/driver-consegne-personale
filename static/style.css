@@ -47,8 +47,8 @@ nav a:hover {
     text-decoration: underline;
 }
 
-h2 {
-    margin: 20px 0;
+h2, h3 {
+    margin: 20px 0 10px 0;
 }
 
 .tabella {
@@ -85,37 +85,11 @@ h2 {
     cursor: pointer;
     text-decoration: none;
     font-size: 1rem;
+    margin: 2px;
 }
 
 .btn:hover {
     background: #2980b9;
-}
-
-form fieldset {
-    border: 1px solid #ddd;
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    background: white;
-}
-
-form legend {
-    font-weight: bold;
-    padding: 0 10px;
-}
-
-form label {
-    display: block;
-    margin-top: 10px;
-    font-weight: bold;
-}
-
-form input, form textarea, form select {
-    width: 100%;
-    padding: 8px;
-    margin-top: 5px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
 }
 
 .alert {

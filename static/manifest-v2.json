@@ -1,7 +1,7 @@
 {
-  "name": "Delivery Magic",
-  "short_name": "Delivery",
-  "description": "Servizio consegne a domicilio per commercianti",
+  "name": "Porto Subito",
+  "short_name": "PortoSubito",
+  "description": "Servizio consegne a domicilio",
   "start_url": "/accedi",
   "display": "standalone",
   "background_color": "#2c3e50",
@@ -9,13 +9,13 @@
   "orientation": "portrait",
   "version": "2.0.0",
   "icons": [
-    {"src": "/static/icon-new-72.png", "sizes": "72x72", "type": "image/png"},
-    {"src": "/static/icon-new-96.png", "sizes": "96x96", "type": "image/png"},
-    {"src": "/static/icon-new-128.png", "sizes": "128x128", "type": "image/png"},
-    {"src": "/static/icon-new-144.png", "sizes": "144x144", "type": "image/png"},
-    {"src": "/static/icon-new-152.png", "sizes": "152x152", "type": "image/png"},
-    {"src": "/static/icon-new-192.png", "sizes": "192x192", "type": "image/png"},
-    {"src": "/static/icon-new-256.png", "sizes": "256x256", "type": "image/png"},
-    {"src": "/static/icon-new-512.png", "sizes": "512x512", "type": "image/png"}
+    {"src": "/static/icon-72.png", "sizes": "72x72", "type": "image/png"},
+    {"src": "/static/icon-96.png", "sizes": "96x96", "type": "image/png"},
+    {"src": "/static/icon-128.png", "sizes": "128x128", "type": "image/png"},
+    {"src": "/static/icon-144.png", "sizes": "144x144", "type": "image/png"},
+    {"src": "/static/icon-152.png", "sizes": "152x152", "type": "image/png"},
+    {"src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "/static/icon-256.png", "sizes": "256x256", "type": "image/png"},
+    {"src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png"}
   ]
 }

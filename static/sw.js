@@ -1,4 +1,4 @@
-const CACHE_NAME = 'driver-consegne-v1';
+const CACHE_NAME = 'porto-subito-v1';
 const urlsToCache = [
   '/',
   '/accedi',
@@ -13,6 +13,7 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
   );
+  self.skipWaiting();
 });
 
 self.addEventListener('fetch', event => {
