@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
-from models import db, Consegna
+from models import db, Consegna, Cliente
 from dotenv import load_dotenv
 import os
 import requests
@@ -85,10 +85,9 @@ def hard_rebuild():
     except Exception as e:
         return f"❌ Errore: {str(e)}"
 
-# ========== PULISCI TUTTE LE CONSEGNE (CANCELLAZIONE FISICA) ==========
+# ========== PULISCI TUTTE LE CONSEGNE ==========
 @app.route('/api/pulisci_tutte', methods=['POST'])
 def api_pulisci_tutte():
-    """Cancella TUTTE le consegne fisicamente dal database"""
     try:
         num = Consegna.query.delete()
         db.session.commit()
@@ -96,6 +95,22 @@ def api_pulisci_tutte():
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
+
+# ========== API CERCA CLIENTI (AUTOCOMPLETAMENTO) ==========
+@app.route('/api/cerca_clienti', methods=['GET'])
+def api_cerca_clienti():
+    q = request.args.get('q', '')
+    telefono_commerciante = request.args.get('telefono', '')
+    
+    if not q or not telefono_commerciante:
+        return jsonify([])
+    
+    clienti = Cliente.query.filter(
+        Cliente.comm_telefono == telefono_commerciante,
+        Cliente.nome.ilike(f'%{q}%')
+    ).order_by(Cliente.ultimo_utilizzo.desc()).limit(10).all()
+    
+    return jsonify([c.to_dict() for c in clienti])
 
 # ========== PAGINA DI ACCESSO COMMERCIANTE ==========
 @app.route('/accedi', methods=['GET', 'POST'])
@@ -243,7 +258,7 @@ def index():
                          consegne_accettate=consegne_accettate,
                          storico=storico)
 
-# ========== DASHBOARD COMMERCIANTE (CORRETTA) ==========
+# ========== DASHBOARD COMMERCIANTE ==========
 @app.route('/commerciante')
 def commerciante():
     telefono = request.args.get('telefono', '')
@@ -309,9 +324,11 @@ def statistiche():
                          commercianti_attivi=commercianti_attivi,
                          da=da_str, a=a_str)
 
-# ========== CREA NUOVA CONSEGNA ==========
+# ========== CREA NUOVA CONSEGNA (con autocompletamento e salvataggio cliente) ==========
 @app.route('/nuova', methods=['GET', 'POST'])
 def nuova_consegna():
+    orario_pre = request.args.get('orario', '')
+    
     if request.method == 'POST':
         orario_raw = request.form.get('orario_richiesto', '')
         orario_formattato = orario_raw.replace('T', ' ') if orario_raw else ''
@@ -333,6 +350,26 @@ def nuova_consegna():
         db.session.add(consegna)
         db.session.commit()
         
+        # SALVA O AGGIORNA IL CLIENTE NELLA RUBRICA
+        cliente_esistente = Cliente.query.filter_by(
+            comm_telefono=consegna.comm_telefono,
+            telefono=consegna.cliente_telefono
+        ).first()
+        
+        if cliente_esistente:
+            cliente_esistente.nome = consegna.cliente_nome
+            cliente_esistente.indirizzo = consegna.cliente_indirizzo_consegna
+            cliente_esistente.ultimo_utilizzo = datetime.now(timezone.utc)
+        else:
+            nuovo_cliente = Cliente(
+                nome=consegna.cliente_nome,
+                telefono=consegna.cliente_telefono,
+                indirizzo=consegna.cliente_indirizzo_consegna,
+                comm_telefono=consegna.comm_telefono
+            )
+            db.session.add(nuovo_cliente)
+        db.session.commit()
+        
         invia_notifica_telegram(
             f"🆕 *NUOVA CONSEGNA*\n🏪 {consegna.comm_nome}\n👤 {consegna.cliente_nome}\n📍 {consegna.cliente_indirizzo_consegna}\n🕐 {consegna.orario_richiesto or '--'}\n💰 {consegna.totale_euro}€"
         )
@@ -340,7 +377,7 @@ def nuova_consegna():
         flash('Consegna creata con successo!', 'success')
         return redirect(url_for('commerciante', telefono=consegna.comm_telefono))
     
-    return render_template('nuova_consegna.html')
+    return render_template('nuova_consegna.html', orario_pre=orario_pre)
 
 # ========== DETTAGLIO CONSEGNA ==========
 @app.route('/consegna/<id>')

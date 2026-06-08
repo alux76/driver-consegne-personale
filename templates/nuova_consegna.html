@@ -25,16 +25,21 @@
     <fieldset>
         <legend>👤 Cliente destinatario</legend>
         
+        <label style="font-weight: bold; color: black;">Cerca cliente (opzionale):</label>
+        <input type="text" id="ricerca_cliente" placeholder="Inizia a scrivere il nome...">
+        <div id="risultati_clienti" style="border:1px solid #ccc; background:white; max-height:150px; overflow-y:auto; display:none;"></div>
+        <br><br>
+        
         <label style="font-weight: bold; color: black;">Nome cliente:</label>
-        <input type="text" name="cliente_nome" required>
+        <input type="text" name="cliente_nome" id="cliente_nome" required>
         <br><br>
         
         <label style="font-weight: bold; color: black;">Telefono cliente:</label>
-        <input type="tel" name="cliente_telefono" required>
+        <input type="tel" name="cliente_telefono" id="cliente_telefono" required>
         <br><br>
         
         <label style="font-weight: bold; color: black;">Indirizzo consegna:</label>
-        <input type="text" name="cliente_indirizzo_consegna" required placeholder="es. Via Lecce 10, Grottaglie">
+        <input type="text" name="cliente_indirizzo_consegna" id="cliente_indirizzo" required placeholder="es. Via Lecce 10, Grottaglie">
         <br><br>
         
         <label style="font-weight: bold; color: black;">Piano:</label>
@@ -118,5 +123,58 @@
     extraSelect.addEventListener('change', aggiornaPreventivo);
     
     aggiornaPreventivo();
+    
+    // ========== AUTOCOMPLETAMENTO CLIENTI ==========
+    const ricercaCliente = document.getElementById('ricerca_cliente');
+    const risultatiDiv = document.getElementById('risultati_clienti');
+    const clienteNome = document.getElementById('cliente_nome');
+    const clienteTelefono = document.getElementById('cliente_telefono');
+    const clienteIndirizzo = document.getElementById('cliente_indirizzo');
+    let timeoutId;
+    
+    ricercaCliente.addEventListener('input', function() {
+        clearTimeout(timeoutId);
+        const query = this.value.trim();
+        if (query.length < 2) {
+            risultatiDiv.style.display = 'none';
+            return;
+        }
+        
+        timeoutId = setTimeout(() => {
+            const telefonoCommerciante = document.querySelector('input[name="comm_telefono"]').value;
+            if (!telefonoCommerciante) return;
+            
+            fetch(`/api/cerca_clienti?q=${encodeURIComponent(query)}&telefono=${encodeURIComponent(telefonoCommerciante)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        risultatiDiv.style.display = 'none';
+                        return;
+                    }
+                    risultatiDiv.innerHTML = data.map(c => 
+                        `<div style="padding: 8px; cursor: pointer; border-bottom:1px solid #eee;" 
+                              onclick="selezionaCliente('${c.nome}', '${c.telefono}', '${c.indirizzo || ''}')">
+                            <strong>${c.nome}</strong> - ${c.telefono}<br>
+                            <small>${c.indirizzo || 'Indirizzo non salvato'}</small>
+                         </div>`
+                    ).join('');
+                    risultatiDiv.style.display = 'block';
+                });
+        }, 300);
+    });
+    
+    function selezionaCliente(nome, telefono, indirizzo) {
+        clienteNome.value = nome;
+        clienteTelefono.value = telefono;
+        clienteIndirizzo.value = indirizzo;
+        ricercaCliente.value = '';
+        risultatiDiv.style.display = 'none';
+    }
+    
+    document.addEventListener('click', function(e) {
+        if (!ricercaCliente.contains(e.target) && !risultatiDiv.contains(e.target)) {
+            risultatiDiv.style.display = 'none';
+        }
+    });
 </script>
 {% endblock %}

@@ -4,6 +4,24 @@ import uuid
 
 db = SQLAlchemy()
 
+class Cliente(db.Model):
+    __tablename__ = 'clienti'
+    
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    nome = db.Column(db.String(100), nullable=False)
+    telefono = db.Column(db.String(20), nullable=False)
+    indirizzo = db.Column(db.String(200), nullable=True)
+    comm_telefono = db.Column(db.String(20), nullable=False)  # telefono del commerciante
+    ultimo_utilizzo = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'nome': self.nome,
+            'telefono': self.telefono,
+            'indirizzo': self.indirizzo
+        }
+
 class Consegna(db.Model):
     __tablename__ = 'consegne'
     
@@ -39,7 +57,6 @@ class Consegna(db.Model):
     pagata = db.Column(db.Boolean, default=False)
     motivo_rifiuto = db.Column(db.Text, nullable=True)
     
-    # ARCHIVIAZIONE
     archiviata_il = db.Column(db.DateTime, nullable=True)
     
     def calcola_totale(self):
