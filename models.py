@@ -39,6 +39,9 @@ class Consegna(db.Model):
     pagata = db.Column(db.Boolean, default=False)
     motivo_rifiuto = db.Column(db.Text, nullable=True)
     
+    # ARCHIVIAZIONE
+    archiviata_il = db.Column(db.DateTime, nullable=True)
+    
     def calcola_totale(self):
         tariffa_base = self.tariffa_base if self.tariffa_base is not None else 3.0
         supplemento_piano = self.supplemento_piano if self.supplemento_piano is not None else 0.50
@@ -71,5 +74,6 @@ class Consegna(db.Model):
             'orario_proposto_driver': self.orario_proposto_driver,
             'pagata': self.pagata,
             'prezzo_proposto': self.prezzo_proposto,
-            'motivo_proposta': self.motivo_proposta
+            'motivo_proposta': self.motivo_proposta,
+            'archiviata_il': self.archiviata_il.isoformat() if self.archiviata_il else None
         }

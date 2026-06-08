@@ -34,10 +34,14 @@
             <ul>
                 {% if request.endpoint == 'index' or request.endpoint == 'admin' %}
                 <li><a href="{{ url_for('index') }}">🏠 Home</a></li>
+                {% endif %}
+                {% if request.endpoint == 'admin' %}
                 <li><a href="{{ url_for('admin') }}">👑 Admin</a></li>
                 {% endif %}
+                {% if request.args.get('telefono') %}
                 <li><a href="{{ url_for('commerciante') }}">🏪 Commerciante</a></li>
                 <li><a href="{{ url_for('nuova_consegna') }}">➕ Nuova consegna</a></li>
+                {% endif %}
             </ul>
         </div>
     </nav>

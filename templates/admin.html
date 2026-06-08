@@ -76,7 +76,7 @@
 {% if consegne_attesa %}
     <table class="tabella">
         <thead>
-            <tr><th>Commerciante</th><th>Cliente</th><th>Orario richiesto</th><th>Driver propone</th><th>Totale</th><tr>
+            <tr><th>Commerciante</th><th>Cliente</th><th>Orario richiesto</th><th>Driver propone</th><th>Totale</th></tr>
         </thead>
         <tbody>
         {% for c in consegne_attesa %}
@@ -128,20 +128,6 @@ function elimina(id) {
             .then(() => location.reload());
     }
 }
-function pulisciTutte() {
-    if(confirm("⚠️ ATTENZIONE: Questa operazione cancellerà TUTTE le consegne. Sei sicuro?")) {
-        fetch('/api/pulisci_tutte', {method: 'POST'})
-            .then(res => res.json())
-            .then(data => {
-                if(data.success) {
-                    alert(`✅ Cancellate ${data.cancellate} consegne`);
-                    location.reload();
-                } else {
-                    alert("❌ Errore: " + data.error);
-                }
-            });
-    }
-}
 function archiviaTutte() {
     if(confirm("Archiviare tutte le consegne completate (pagate)? Saranno spostate nell'archivio e non compariranno più nella dashboard.")) {
         fetch('/api/archivia_tutte', {method: 'POST'})
@@ -149,6 +135,20 @@ function archiviaTutte() {
             .then(data => {
                 if(data.success) {
                     alert(`✅ Archiviate ${data.archiviate} consegne`);
+                    location.reload();
+                } else {
+                    alert("❌ Errore: " + data.error);
+                }
+            });
+    }
+}
+function pulisciTutte() {
+    if(confirm("⚠️ ATTENZIONE: Questa operazione cancellerà TUTTE le consegne. Sei sicuro?")) {
+        fetch('/api/pulisci_tutte', {method: 'POST'})
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    alert(`✅ Cancellate ${data.cancellate} consegne`);
                     location.reload();
                 } else {
                     alert("❌ Errore: " + data.error);
