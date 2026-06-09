@@ -22,7 +22,7 @@
         }
         h1 {
             color: #1a73e8;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
         }
         .btn-nuova {
             background: #1a73e8;
@@ -113,15 +113,6 @@
             font-weight: bold;
             display: inline-block;
         }
-        .btn-accetta {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-        }
         .btn-accetta-proposta {
             background: #28a745;
             color: white;
@@ -153,21 +144,11 @@
             text-align: center;
             padding: 20px;
         }
-        .nav-links {
-            margin-top: 20px;
-            text-align: center;
-        }
-        .nav-links a {
-            color: #1a73e8;
-            text-decoration: none;
-            margin: 0 10px;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🏪 Porto Subito - Area Commerciante</h1>
-        <p>Telefono: <strong>{{ telefono }}</strong></p>
         
         <a href="{{ url_for('nuova_consegna', telefono=telefono) }}" class="btn-nuova">➕ NUOVA CONSEGNA</a>
 
@@ -307,12 +288,6 @@
             {% else %}
             <div class="info-text">Nessuna consegna nello storico</div>
             {% endif %}
-        </div>
-
-        <div class="nav-links">
-            <a href="{{ url_for('index') }}">🚚 Driver</a>
-            <a href="{{ url_for('admin') }}">👑 Admin</a>
-            <a href="{{ url_for('statistiche') }}">📊 Statistiche</a>
         </div>
     </div>
 
