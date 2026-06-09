@@ -311,24 +311,33 @@ def index():
                          consegne_accettate=consegne_accettate,
                          storico=storico)
 
-# ========== DASHBOARD COMMERCIANTE ==========
+# ========== DASHBOARD COMMERCIANTE (CORRETTA) ==========
 @app.route('/commerciante')
 def commerciante():
     telefono = request.args.get('telefono', '')
     if telefono:
+        # ✅ CONSEGNE IN ATTESA (ORA INCLUDE 'richiesta' - appena creata)
         consegne_proposte = Consegna.query.filter(
-            Consegna.stato.in_(['attesa_conferma', 'attesa_modifica']),
-            Consegna.comm_telefono == telefono
+            Consegna.comm_telefono == telefono,
+            Consegna.stato.in_(['richiesta', 'attesa_conferma', 'attesa_modifica'])
         ).order_by(Consegna.data_creazione.desc()).all()
+        
+        # ✅ CONSEGNE ACCETTATE IN CORSO
         consegne_accettate = Consegna.query.filter(
             Consegna.comm_telefono == telefono,
-            Consegna.stato.in_(['accettata', 'consegnata', 'archiviata'])
+            Consegna.stato == 'accettata'
         ).order_by(Consegna.data_creazione.desc()).all()
-        consegne_rifiutate = Consegna.query.filter_by(stato='rifiutata', comm_telefono=telefono).order_by(Consegna.data_creazione.desc()).all()
+        
+        # ✅ STORICO (consegnate, rifiutate, cancellate, archiviate)
+        consegne_rifiutate = Consegna.query.filter(
+            Consegna.comm_telefono == telefono,
+            Consegna.stato.in_(['consegnata', 'rifiutata', 'cancellata', 'archiviata'])
+        ).order_by(Consegna.data_creazione.desc()).all()
     else:
         consegne_proposte = []
         consegne_accettate = []
         consegne_rifiutate = []
+    
     return render_template('commerciante.html', 
                          consegne_proposte=consegne_proposte,
                          consegne_accettate=consegne_accettate,
