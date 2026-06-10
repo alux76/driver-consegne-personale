@@ -311,24 +311,21 @@ def index():
                          consegne_accettate=consegne_accettate,
                          storico=storico)
 
-# ========== DASHBOARD COMMERCIANTE (CORRETTA) ==========
+# ========== DASHBOARD COMMERCIANTE ==========
 @app.route('/commerciante')
 def commerciante():
     telefono = request.args.get('telefono', '')
     if telefono:
-        # ✅ CONSEGNE IN ATTESA (ORA INCLUDE 'richiesta' - appena creata)
         consegne_proposte = Consegna.query.filter(
             Consegna.comm_telefono == telefono,
             Consegna.stato.in_(['richiesta', 'attesa_conferma', 'attesa_modifica'])
         ).order_by(Consegna.data_creazione.desc()).all()
         
-        # ✅ CONSEGNE ACCETTATE IN CORSO
         consegne_accettate = Consegna.query.filter(
             Consegna.comm_telefono == telefono,
             Consegna.stato == 'accettata'
         ).order_by(Consegna.data_creazione.desc()).all()
         
-        # ✅ STORICO (consegnate, rifiutate, cancellate, archiviate)
         consegne_rifiutate = Consegna.query.filter(
             Consegna.comm_telefono == telefono,
             Consegna.stato.in_(['consegnata', 'rifiutata', 'cancellata', 'archiviata'])
@@ -386,7 +383,7 @@ def statistiche():
                          commercianti_attivi=commercianti_attivi,
                          da=da_str, a=a_str)
 
-# ========== CREA NUOVA CONSEGNA CON AUTO-COMPILAMENTO CLIENTE E EXTRA COSTI ==========
+# ========== CREA NUOVA CONSEGNA ==========
 @app.route('/nuova', methods=['GET', 'POST'])
 def nuova_consegna():
     orario_pre = request.args.get('orario', '')
@@ -426,10 +423,9 @@ def nuova_consegna():
         orario_raw = request.form.get('orario_richiesto', '')
         orario_formattato = orario_raw.replace('T', ' ') if orario_raw else ''
         
-        # Calcolo supplemento extra con i nuovi extra costi
+        # Calcolo supplemento extra
         supplemento_extra = float(request.form.get('supplemento_extra', 0))
         
-        # EXTRA COSTI: notturna (+5€), festivo (+3€), fuori mano (+4€)
         if 'notturna' in request.form:
             supplemento_extra += 5.0
             print(f"💰 [DEBUG] +5€ per consegna notturna")

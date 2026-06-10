@@ -66,9 +66,11 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            overflow-x: auto;
+            display: block;
         }
         th, td {
-            padding: 14px 12px;
+            padding: 12px 10px;
             text-align: left;
             border-bottom: 1px solid #e8e8e8;
             vertical-align: top;
@@ -162,6 +164,16 @@
             display: inline-block;
             margin-top: 10px;
         }
+        @media (max-width: 768px) {
+            th, td {
+                font-size: 12px;
+                padding: 8px 6px;
+            }
+            .btn-accept, .btn-reject, .btn-propose, .btn-pay {
+                padding: 4px 8px;
+                font-size: 10px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -186,111 +198,166 @@
         <!-- RICHIESTE NUOVE -->
         <div class="section">
             <h2>📋 Nuove consegne da valutare</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th><th>Cliente</th><th>Indirizzo</th><th>Piano</th><th>Orario</th><th>Totale</th><th>Azioni</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for c in consegne_richieste %}
-                    <tr>
-                        <td>{{ c.id[:8] }}...</td>
-                        <td>{{ c.cliente_nome }}</td>
-                        <td>{{ c.cliente_indirizzo_consegna }}</td>
-                        <td>{{ c.cliente_piano }}</td>
-                        <td>{{ c.orario_richiesto or '--' }}</td>
-                        <td>{{ c.totale_euro }}€</td>
-                        <td>
-                            <button class="btn-accept" onclick="accetta('{{ c.id }}')">✅ Accetta</button>
-                            <button class="btn-reject" onclick="rifiuta('{{ c.id }}')">❌ Rifiuta</button>
-                            <button class="btn-propose" onclick="propostaModifica('{{ c.id }}')">✏️ Proposta</button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Commerciante</th>
+                            <th>Tel Commerciante</th>
+                            <th>Indirizzo Partenza</th>
+                            <th>Cliente</th>
+                            <th>Indirizzo Consegna</th>
+                            <th>Piano</th>
+                            <th>Orario</th>
+                            <th>Totale</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in consegne_richieste %}
+                        <tr>
+                            <td>{{ c.id[:8] }}...</td>
+                            <td>{{ c.comm_nome }}</td>
+                            <td>{{ c.comm_telefono }}</td>
+                            <td>{{ c.comm_indirizzo_partenza }}</td>
+                            <td>{{ c.cliente_nome }}</td>
+                            <td>{{ c.cliente_indirizzo_consegna }}</td>
+                            <td>{{ c.cliente_piano }}</td>
+                            <td>{{ c.orario_richiesto or '--' }}</td>
+                            <td>{{ c.totale_euro }}€</td>
+                            <td>
+                                <button class="btn-accept" onclick="accetta('{{ c.id }}')">✅ Accetta</button>
+                                <button class="btn-reject" onclick="rifiuta('{{ c.id }}')">❌ Rifiuta</button>
+                                <button class="btn-propose" onclick="propostaModifica('{{ c.id }}')">✏️ Proposta</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- IN ATTESA DI CONFERMA -->
         <div class="section">
             <h2>⏳ In attesa di conferma dal commerciante</h2>
-            <table>
-                <thead>
-                    <tr><th>ID</th><th>Cliente</th><th>Indirizzo</th><th>Orario proposto</th><th>Prezzo proposto</th><th>Motivo</th></tr>
-                </thead>
-                <tbody>
-                    {% for c in consegne_attesa %}
-                    <tr>
-                        <td>{{ c.id[:8] }}...</td>
-                        <td>{{ c.cliente_nome }}</td>
-                        <td>{{ c.cliente_indirizzo_consegna }}</td>
-                        <td>{{ c.orario_proposto_driver or c.orario_richiesto }}</td>
-                        <td>{{ c.prezzo_proposto or c.totale_euro }}€</td>
-                        <td>{{ c.motivo_proposta or '-' }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Commerciante</th>
+                            <th>Tel Commerciante</th>
+                            <th>Indirizzo Partenza</th>
+                            <th>Cliente</th>
+                            <th>Indirizzo Consegna</th>
+                            <th>Orario proposto</th>
+                            <th>Prezzo proposto</th>
+                            <th>Motivo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in consegne_attesa %}
+                        <tr>
+                            <td>{{ c.id[:8] }}...</td>
+                            <td>{{ c.comm_nome }}</td>
+                            <td>{{ c.comm_telefono }}</td>
+                            <td>{{ c.comm_indirizzo_partenza }}</td>
+                            <td>{{ c.cliente_nome }}</td>
+                            <td>{{ c.cliente_indirizzo_consegna }}</td>
+                            <td>{{ c.orario_proposto_driver or c.orario_richiesto }}</td>
+                            <td>{{ c.prezzo_proposto or c.totale_euro }}€</td>
+                            <td>{{ c.motivo_proposta or '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- CONSEGNE ACCETTATE -->
         <div class="section">
             <h2>✅ Consegne accettate (in corso)</h2>
-            <table>
-                <thead>
-                    <tr><th>ID</th><th>Cliente</th><th>Indirizzo</th><th>Piano</th><th>Orario</th><th>Totale</th><th>Azioni</th></tr>
-                </thead>
-                <tbody>
-                    {% for c in consegne_accettate %}
-                    <tr>
-                        <td>{{ c.id[:8] }}...</td>
-                        <td>{{ c.cliente_nome }}</td>
-                        <td>
-                            {{ c.cliente_indirizzo_consegna }}
-                            <br>
-                            <a href="https://www.google.com/maps/dir/?api=1&destination={{ c.cliente_indirizzo_consegna|urlencode }}" 
-                               target="_blank" 
-                               class="btn-navigation">
-                               🗺️ APRI NAVIGAZIONE
-                            </a>
-                        </td>
-                        <td>{{ c.cliente_piano }}</td>
-                        <td>{{ c.orario_richiesto or '--' }}</td>
-                        <td>{{ c.totale_euro }}€</td>
-                        <td>
-                            <button class="btn-pay" onclick="paga('{{ c.id }}')">💰 Segna pagato</button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Commerciante</th>
+                            <th>Tel Commerciante</th>
+                            <th>Indirizzo Partenza</th>
+                            <th>Cliente</th>
+                            <th>Indirizzo Consegna</th>
+                            <th>Piano</th>
+                            <th>Orario</th>
+                            <th>Totale</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in consegne_accettate %}
+                        <tr>
+                            <td>{{ c.id[:8] }}...</td>
+                            <td>{{ c.comm_nome }}</td>
+                            <td>{{ c.comm_telefono }}</td>
+                            <td>{{ c.comm_indirizzo_partenza }}</td>
+                            <td>{{ c.cliente_nome }}</td>
+                            <td>
+                                {{ c.cliente_indirizzo_consegna }}
+                                <br>
+                                <a href="https://www.google.com/maps/dir/?api=1&destination={{ c.cliente_indirizzo_consegna|urlencode }}" 
+                                   target="_blank" 
+                                   class="btn-navigation">
+                                   🗺️ APRI NAVIGAZIONE
+                                </a>
+                            </td>
+                            <td>{{ c.cliente_piano }}</td>
+                            <td>{{ c.orario_richiesto or '--' }}</td>
+                            <td>{{ c.totale_euro }}€</td>
+                            <td>
+                                <button class="btn-pay" onclick="paga('{{ c.id }}')">💰 Segna pagato</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- STORICO -->
         <div class="section">
             <h2>📜 Storico consegne</h2>
-            <table>
-                <thead>
-                    <tr><th>Data</th><th>Cliente</th><th>Indirizzo</th><th>Totale</th><th>Stato</th></tr>
-                </thead>
-                <tbody>
-                    {% for c in storico %}
-                    <tr>
-                        <td>{{ c.data_creazione.strftime('%d/%m/%Y %H:%M') if c.data_creazione else '-' }}</td>
-                        <td>{{ c.cliente_nome }}</td>
-                        <td>{{ c.cliente_indirizzo_consegna }}</td>
-                        <td>{{ c.totale_euro }}€</td>
-                        <td>
-                            {% if c.stato == 'consegnata' %}✅ Consegnata
-                            {% elif c.stato == 'cancellata' %}❌ Cancellata
-                            {% elif c.stato == 'rifiutata' %}🚫 Rifiutata
-                            {% else %}{{ c.stato }}{% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Commerciante</th>
+                            <th>Cliente</th>
+                            <th>Indirizzo Consegna</th>
+                            <th>Totale</th>
+                            <th>Stato</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in storico %}
+                        <tr>
+                            <td>{{ c.data_creazione.strftime('%d/%m/%Y %H:%M') if c.data_creazione else '-' }}</td>
+                            <td>{{ c.comm_nome }}</td>
+                            <td>{{ c.cliente_nome }}</td>
+                            <td>{{ c.cliente_indirizzo_consegna }}</td>
+                            <td>{{ c.totale_euro }}€</td>
+                            <td>
+                                {% if c.stato == 'consegnata' %}✅ Consegnata
+                                {% elif c.stato == 'cancellata' %}❌ Cancellata
+                                {% elif c.stato == 'rifiutata' %}🚫 Rifiutata
+                                {% else %}{{ c.stato }}{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
