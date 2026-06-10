@@ -5,26 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Porto Subito - Driver Dashboard</title>
     <link rel="manifest" href="/manifest_driver.json">
+    <meta name="theme-color" content="#1a73e8">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f0f2f5;
             padding: 24px;
         }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 { color: #1a73e8; margin-bottom: 8px; font-size: 28px; }
+        
+        /* Pulsante installazione PWA */
+        .install-btn {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0 20px 0;
+            display: inline-block;
         }
-        h1 {
-            color: #1a73e8;
-            margin-bottom: 8px;
-            font-size: 28px;
-        }
+        .install-btn:hover { background: #1557b0; }
+        
         .stats {
             display: flex;
             gap: 20px;
@@ -40,16 +46,8 @@
             min-width: 160px;
             text-align: center;
         }
-        .stat-number {
-            font-size: 32px;
-            font-weight: bold;
-            color: #1a73e8;
-        }
-        .stat-label {
-            color: #5f6368;
-            font-size: 14px;
-            margin-top: 6px;
-        }
+        .stat-number { font-size: 32px; font-weight: bold; color: #1a73e8; }
+        .stat-label { color: #5f6368; font-size: 14px; margin-top: 6px; }
         .section {
             background: white;
             border-radius: 16px;
@@ -76,18 +74,9 @@
             border-bottom: 1px solid #e8e8e8;
             vertical-align: top;
         }
-        th {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: #5f6368;
-            font-size: 13px;
-        }
-        tr:hover {
-            background: #f8f9fa;
-        }
-        .btn-accept {
-            background: #1a73e8;
-            color: white;
+        th { background: #f8f9fa; font-weight: 600; color: #5f6368; font-size: 13px; }
+        tr:hover { background: #f8f9fa; }
+        .btn-accept, .btn-reject, .btn-pay, .btn-propose {
             border: none;
             padding: 8px 14px;
             border-radius: 8px;
@@ -95,65 +84,10 @@
             font-size: 12px;
             font-weight: 500;
         }
-        .btn-reject {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 500;
-            margin-left: 8px;
-        }
-        .btn-pay {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        .btn-propose {
-            background: #ff9800;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 500;
-            margin-left: 8px;
-        }
-        .status-richiesta {
-            background: #fff3cd;
-            color: #856404;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            display: inline-block;
-        }
-        .status-attesa {
-            background: #d1ecf1;
-            color: #0c5460;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            display: inline-block;
-        }
-        .status-accettata {
-            background: #d4edda;
-            color: #155724;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            display: inline-block;
-        }
+        .btn-accept { background: #1a73e8; color: white; }
+        .btn-reject { background: #dc3545; color: white; margin-left: 8px; }
+        .btn-pay { background: #28a745; color: white; }
+        .btn-propose { background: #ff9800; color: white; margin-left: 8px; }
         .btn-navigation {
             background: #4CAF50;
             color: white;
@@ -166,20 +100,17 @@
             margin-top: 10px;
         }
         @media (max-width: 768px) {
-            th, td {
-                font-size: 12px;
-                padding: 8px 6px;
-            }
-            .btn-accept, .btn-reject, .btn-propose, .btn-pay {
-                padding: 4px 8px;
-                font-size: 10px;
-            }
+            th, td { font-size: 12px; padding: 8px 6px; }
+            .btn-accept, .btn-reject, .btn-propose, .btn-pay { padding: 4px 8px; font-size: 10px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🚚 Porto Subito - Driver Dashboard</h1>
+        
+        <!-- PULSANTE INSTALLAZIONE PWA -->
+        <button id="installBtn" class="install-btn" style="display: none;">📱 Installa App</button>
         
         <div class="stats">
             <div class="stat-card">
@@ -203,22 +134,14 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Commerciante</th>
-                            <th>Tel Commerciante</th>
-                            <th>Indirizzo Partenza</th>
-                            <th>Cliente</th>
-                            <th>Indirizzo Consegna</th>
-                            <th>Piano</th>
-                            <th>Orario</th>
-                            <th>Totale</th>
-                            <th>Azioni</th>
+                            <th>ID</th><th>Commerciante</th><th>Tel</th><th>Partenza</th>
+                            <th>Cliente</th><th>Consegna</th><th>Piano</th><th>Orario</th><th>Totale</th><th>Azioni</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for c in consegne_richieste %}
                         <tr>
-                            <td>{{ c.id[:8] }}...</td>
+                            <td>{{ c.id[:8] }}...{% endfor %}</td>
                             <td>{{ c.comm_nome }}</td>
                             <td>{{ c.comm_telefono }}</td>
                             <td>{{ c.comm_indirizzo_partenza }}</td>
@@ -244,28 +167,13 @@
             <h2>⏳ In attesa di conferma dal commerciante</h2>
             <div style="overflow-x: auto;">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Commerciante</th>
-                            <th>Tel Commerciante</th>
-                            <th>Indirizzo Partenza</th>
-                            <th>Cliente</th>
-                            <th>Indirizzo Consegna</th>
-                            <th>Orario proposto</th>
-                            <th>Prezzo proposto</th>
-                            <th>Motivo</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>ID</th><th>Commerciante</th><th>Cliente</th><th>Orario proposto</th><th>Prezzo</th><th>Motivo</th></tr></thead>
                     <tbody>
                         {% for c in consegne_attesa %}
                         <tr>
-                            <td>{{ c.id[:8] }}...</td>
+                            <td>{{ c.id[:8] }}...{% endfor %}</td>
                             <td>{{ c.comm_nome }}</td>
-                            <td>{{ c.comm_telefono }}</td>
-                            <td>{{ c.comm_indirizzo_partenza }}</td>
                             <td>{{ c.cliente_nome }}</td>
-                            <td>{{ c.cliente_indirizzo_consegna }}</td>
                             <td>{{ c.orario_proposto_driver or c.orario_richiesto }}</td>
                             <td>{{ c.prezzo_proposto or c.totale_euro }}€</td>
                             <td>{{ c.motivo_proposta or '-' }}</td>
@@ -282,42 +190,24 @@
             <div style="overflow-x: auto;">
                 <table>
                     <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Commerciante</th>
-                            <th>Tel Commerciante</th>
-                            <th>Indirizzo Partenza</th>
-                            <th>Cliente</th>
-                            <th>Indirizzo Consegna</th>
-                            <th>Piano</th>
-                            <th>Orario</th>
-                            <th>Totale</th>
-                            <th>Azioni</th>
-                        </tr>
+                        <tr><th>ID</th><th>Commerciante</th><th>Cliente</th><th>Indirizzo Consegna</th><th>Piano</th><th>Orario</th><th>Totale</th><th>Azioni</th></tr>
                     </thead>
                     <tbody>
                         {% for c in consegne_accettate %}
                         <tr>
-                            <td>{{ c.id[:8] }}...</td>
+                            <td>{{ c.id[:8] }}...{% endfor %}</td>
                             <td>{{ c.comm_nome }}</td>
-                            <td>{{ c.comm_telefono }}</td>
-                            <td>{{ c.comm_indirizzo_partenza }}</td>
                             <td>{{ c.cliente_nome }}</td>
                             <td>
                                 {{ c.cliente_indirizzo_consegna }}
                                 <br>
                                 <a href="https://www.google.com/maps/dir/?api=1&destination={{ c.cliente_indirizzo_consegna|urlencode }}" 
-                                   target="_blank" 
-                                   class="btn-navigation">
-                                   🗺️ APRI NAVIGAZIONE
-                                </a>
+                                   target="_blank" class="btn-navigation">🗺️ APRI NAVIGAZIONE</a>
                             </td>
                             <td>{{ c.cliente_piano }}</td>
                             <td>{{ c.orario_richiesto or '--' }}</td>
                             <td>{{ c.totale_euro }}€</td>
-                            <td>
-                                <button class="btn-pay" onclick="paga('{{ c.id }}')">💰 Segna pagato</button>
-                            </td>
+                            <td><button class="btn-pay" onclick="paga('{{ c.id }}')">💰 Segna pagato</button></td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -330,16 +220,7 @@
             <h2>📜 Storico consegne</h2>
             <div style="overflow-x: auto;">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Commerciante</th>
-                            <th>Cliente</th>
-                            <th>Indirizzo Consegna</th>
-                            <th>Totale</th>
-                            <th>Stato</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Data</th><th>Commerciante</th><th>Cliente</th><th>Indirizzo</th><th>Totale</th><th>Stato</th></tr></thead>
                     <tbody>
                         {% for c in storico %}
                         <tr>
@@ -363,6 +244,34 @@
     </div>
 
     <script>
+        // PWA INSTALLATION
+        let deferredPrompt;
+        const installBtn = document.getElementById('installBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'inline-block';
+            
+            installBtn.addEventListener('click', () => {
+                installBtn.style.display = 'none';
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('Utente ha accettato l\'installazione');
+                    }
+                    deferredPrompt = null;
+                });
+            });
+        });
+
+        window.addEventListener('appinstalled', () => {
+            console.log('App installata con successo');
+            installBtn.style.display = 'none';
+            deferredPrompt = null;
+        });
+
+        // FUNZIONI ESISTENTI
         function accetta(id) {
             if(confirm('Accettare questa consegna?')) {
                 fetch(`/api/accetta_consegna/${id}`, { method: 'POST' })
@@ -413,13 +322,6 @@
         }
 
         setInterval(() => { location.reload(); }, 30000);
-
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
-                .then(function(reg) {
-                    console.log('Service Worker registrato!');
-                });
-        }
     </script>
 </body>
 </html>
