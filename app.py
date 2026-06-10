@@ -383,7 +383,7 @@ def statistiche():
                          commercianti_attivi=commercianti_attivi,
                          da=da_str, a=a_str)
 
-# ========== CREA NUOVA CONSEGNA ==========
+# ========== CREA NUOVA CONSEGNA CON AUTO-COMPILAMENTO CLIENTE E EXTRA COSTI ==========
 @app.route('/nuova', methods=['GET', 'POST'])
 def nuova_consegna():
     orario_pre = request.args.get('orario', '')
@@ -398,6 +398,7 @@ def nuova_consegna():
     ultimo_cliente_indirizzo = ''
     ultimo_cliente_piano = 0
     ultimo_cliente_note = ''
+    ultimo_indirizzo_partenza = ''
     
     # CERCA L'ULTIMO CLIENTE
     if telefono_commerciante:
@@ -416,6 +417,7 @@ def nuova_consegna():
             ultimo_cliente_indirizzo = ultima_consegna.cliente_indirizzo_consegna
             ultimo_cliente_piano = ultima_consegna.cliente_piano
             ultimo_cliente_note = ultima_consegna.cliente_note
+            ultimo_indirizzo_partenza = ultima_consegna.comm_indirizzo_partenza
             print(f"✅ [DEBUG] Auto-compilato ULTIMO CLIENTE: '{ultimo_cliente_nome}'")
     
     if request.method == 'POST':
@@ -423,9 +425,10 @@ def nuova_consegna():
         orario_raw = request.form.get('orario_richiesto', '')
         orario_formattato = orario_raw.replace('T', ' ') if orario_raw else ''
         
-        # Calcolo supplemento extra
+        # Calcolo supplemento extra con i nuovi extra costi
         supplemento_extra = float(request.form.get('supplemento_extra', 0))
         
+        # EXTRA COSTI: notturna (+5€), festivo (+3€), fuori mano (+4€)
         if 'notturna' in request.form:
             supplemento_extra += 5.0
             print(f"💰 [DEBUG] +5€ per consegna notturna")
@@ -489,7 +492,8 @@ def nuova_consegna():
                          ultimo_cliente_telefono=ultimo_cliente_telefono,
                          ultimo_cliente_indirizzo=ultimo_cliente_indirizzo,
                          ultimo_cliente_piano=ultimo_cliente_piano,
-                         ultimo_cliente_note=ultimo_cliente_note)
+                         ultimo_cliente_note=ultimo_cliente_note,
+                         ultimo_indirizzo_partenza=ultimo_indirizzo_partenza)
 
 # ========== DETTAGLIO CONSEGNA ==========
 @app.route('/consegna/<id>')
