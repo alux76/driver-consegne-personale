@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Porto Subito - Driver Dashboard</title>
+    <link rel="manifest" href="/manifest_driver.json">
     <style>
         * {
             margin: 0;
@@ -412,6 +413,13 @@
         }
 
         setInterval(() => { location.reload(); }, 30000);
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(function(reg) {
+                    console.log('Service Worker registrato!');
+                });
+        }
     </script>
 </body>
 </html>
