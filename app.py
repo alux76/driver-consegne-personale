@@ -385,6 +385,25 @@ def statistiche():
                          commercianti_attivi=commercianti_attivi,
                          da=da_str, a=a_str)
 
+# ========== FUNZIONE DI SERVIZIO PER CONVERSIONE SICURA ==========
+def safe_int(value, default=0):
+    """Converte in int in modo sicuro, gestendo stringhe vuote e None"""
+    if value is None or value == '':
+        return default
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return default
+
+def safe_float(value, default=0.0):
+    """Converte in float in modo sicuro, gestendo stringhe vuote e None"""
+    if value is None or value == '':
+        return default
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
 # ========== CREA NUOVA CONSEGNA ==========
 @app.route('/nuova', methods=['GET', 'POST'])
 def nuova_consegna():
@@ -427,17 +446,9 @@ def nuova_consegna():
         orario_raw = request.form.get('orario_richiesto', '')
         orario_formattato = orario_raw.replace('T', ' ') if orario_raw else ''
         
-        # ========== FIX: Gestione sicura di supplemento_extra ==========
-        supplemento_raw = request.form.get('supplemento_extra', '')
-        try:
-            if supplemento_raw and supplemento_raw.strip():
-                supplemento_extra = float(supplemento_raw)
-            else:
-                supplemento_extra = 0.0
-        except ValueError:
-            print(f"⚠️ [WARNING] Valore supplemento_extra non valido: '{supplemento_raw}', usando 0")
-            supplemento_extra = 0.0
-        # ========== FINE FIX ==========
+        # Conversioni sicure per tutti i campi numerici
+        supplemento_extra = safe_float(request.form.get('supplemento_extra', ''))
+        cliente_piano = safe_int(request.form.get('cliente_piano', ''))
         
         if 'notturna' in request.form:
             supplemento_extra += 5.0
@@ -453,7 +464,7 @@ def nuova_consegna():
             cliente_nome=request.form['cliente_nome'],
             cliente_telefono=request.form['cliente_telefono'],
             cliente_indirizzo_consegna=request.form['cliente_indirizzo_consegna'],
-            cliente_piano=int(request.form.get('cliente_piano', 0)),
+            cliente_piano=cliente_piano,
             cliente_note=request.form.get('cliente_note', ''),
             fragile='fragile' in request.form,
             orario_richiesto=orario_formattato,
@@ -509,8 +520,8 @@ def dettaglio_consegna(id):
 @app.route('/api/calcola_preventivo', methods=['POST'])
 def api_calcola_preventivo():
     data = request.get_json()
-    piano = int(data.get('piano', 0))
-    extra = float(data.get('extra', 0))
+    piano = safe_int(data.get('piano', 0))
+    extra = safe_float(data.get('extra', 0))
     fragile = data.get('fragile', False)
     
     tariffa_base = 3.0
