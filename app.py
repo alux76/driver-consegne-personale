@@ -319,7 +319,6 @@ def commerciante():
     telefono = request.args.get('telefono', '')
     
     # Carica i dati del commerciante dal database
-    commerciante_data = None
     comm_nome = ''
     comm_indirizzo_partenza = ''
     
@@ -328,7 +327,6 @@ def commerciante():
         if commerciante:
             comm_nome = commerciante.nome
             comm_indirizzo_partenza = commerciante.indirizzo_partenza or ''
-            commerciante_data = commerciante.to_dict()
             print(f"✅ [DEBUG] Dati commerciante caricati: {comm_nome}")
         else:
             print(f"⚠️ [DEBUG] Commerciante non trovato: {telefono}")
@@ -482,7 +480,7 @@ def nuova_consegna():
         if 'fuori_mano' in request.form:
             supplemento_extra += 4.0
         
-        # Se il commerciante ha inviato nome e indirizzo, salvali nel database
+        # SALVA/AGGIORNA I DATI DEL COMMERCIANTE NEL DATABASE
         comm_nome_inviato = request.form.get('comm_nome', '')
         comm_indirizzo_inviato = request.form.get('comm_indirizzo_partenza', '')
         comm_telefono_inviato = request.form.get('comm_telefono', '')
@@ -496,6 +494,7 @@ def nuova_consegna():
                 if commerciante_esistente.indirizzo_partenza != comm_indirizzo_inviato:
                     commerciante_esistente.indirizzo_partenza = comm_indirizzo_inviato
                 commerciante_esistente.ultimo_accesso = datetime.now(timezone.utc)
+                print(f"✅ [DEBUG] Dati commerciante aggiornati: {comm_nome_inviato}")
             else:
                 # Crea nuovo commerciante
                 nuovo_commerciante = Commerciante(
@@ -504,8 +503,8 @@ def nuova_consegna():
                     indirizzo_partenza=comm_indirizzo_inviato
                 )
                 db.session.add(nuovo_commerciante)
+                print(f"✅ [DEBUG] Nuovo commerciante creato: {comm_nome_inviato}")
             db.session.commit()
-            print(f"✅ [DEBUG] Dati commerciante salvati/aggiornati")
         
         consegna = Consegna(
             comm_nome=request.form['comm_nome'],
