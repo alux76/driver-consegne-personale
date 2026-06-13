@@ -195,7 +195,7 @@ def api_elimina_consegna(id):
     db.session.commit()
     return jsonify({'success': True})
 
-# ========== PROPOSTA UNICA ==========
+# ========== PROPOSTA UNICA (MODIFICATA PER GESTIRE ENTRAMBI I CAMPI) ==========
 @app.route('/api/proposta_unica/<id>', methods=['POST'])
 def api_proposta_unica(id):
     data = request.get_json()
@@ -205,27 +205,62 @@ def api_proposta_unica(id):
     
     consegna = Consegna.query.get_or_404(id)
     if consegna.stato == 'richiesta':
-        if nuovo_orario:
-            consegna.orario_proposto_driver = nuovo_orario
-            consegna.stato = 'attesa_conferma'
-        if nuovo_prezzo:
-            consegna.prezzo_proposto = nuovo_prezzo
-            consegna.motivo_proposta = motivo
-            consegna.stato = 'attesa_modifica'
-        if nuovo_orario and nuovo_prezzo:
-            consegna.stato = 'attesa_modifica'
-        db.session.commit()
+        modifiche_apportate = False
         
-        invia_notifica_telegram(
-            f"✏️ *PROPOSTA DI MODIFICA*\n"
-            f"🏪 {consegna.comm_nome}\n"
-            f"👤 {consegna.cliente_nome}\n"
-            f"🕐 Orario: {consegna.orario_proposto_driver or 'invariato'}\n"
-            f"💰 Prezzo: {consegna.prezzo_proposto or 'invariato'}€\n"
-            f"📝 Motivo: {motivo}"
-        )
-        return jsonify({'success': True})
-    return jsonify({'success': False}), 400
+        # Gestione orario
+        if nuovo_orario and nuovo_orario.strip():
+            consegna.orario_proposto_driver = nuovo_orario
+            modifiche_apportate = True
+            print(f"📝 Proposta orario: {nuovo_orario}")
+        
+        # Gestione prezzo
+        if nuovo_prezzo is not None and str(nuovo_prezzo).strip():
+            try:
+                prezzo_float = float(nuovo_prezzo)
+                consegna.prezzo_proposto = prezzo_float
+                consegna.motivo_proposta = motivo
+                modifiche_apportate = True
+                print(f"📝 Proposta prezzo: {prezzo_float}€")
+            except ValueError:
+                print(f"⚠️ Prezzo non valido: {nuovo_prezzo}")
+        
+        if modifiche_apportate:
+            # Imposta lo stato in base a cosa è stato proposto
+            if nuovo_orario and nuovo_prezzo:
+                consegna.stato = 'attesa_modifica'  # Entrambi
+                invia_notifica_telegram(
+                    f"✏️ *PROPOSTA DI MODIFICA* (orario + prezzo)\n"
+                    f"🏪 {consegna.comm_nome}\n"
+                    f"👤 {consegna.cliente_nome}\n"
+                    f"🕐 Nuovo orario: {nuovo_orario}\n"
+                    f"💰 Nuovo prezzo: {nuovo_prezzo}€\n"
+                    f"📝 Motivo: {motivo or 'Nessun motivo specificato'}"
+                )
+            elif nuovo_orario and not nuovo_prezzo:
+                consegna.stato = 'attesa_conferma'  # Solo orario
+                invia_notifica_telegram(
+                    f"✏️ *PROPOSTA DI MODIFICA ORARIO*\n"
+                    f"🏪 {consegna.comm_nome}\n"
+                    f"👤 {consegna.cliente_nome}\n"
+                    f"🕐 Nuovo orario: {nuovo_orario}\n"
+                    f"📝 Motivo: {motivo or 'Nessun motivo specificato'}"
+                )
+            elif not nuovo_orario and nuovo_prezzo:
+                consegna.stato = 'attesa_modifica'  # Solo prezzo
+                invia_notifica_telegram(
+                    f"✏️ *PROPOSTA DI MODIFICA PREZZO*\n"
+                    f"🏪 {consegna.comm_nome}\n"
+                    f"👤 {consegna.cliente_nome}\n"
+                    f"💰 Nuovo prezzo: {nuovo_prezzo}€\n"
+                    f"📝 Motivo: {motivo or 'Nessun motivo specificato'}"
+                )
+            
+            db.session.commit()
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Nessuna modifica proposta'}), 400
+            
+    return jsonify({'success': False, 'error': 'Consegna non in stato richiesta'}), 400
 
 # ========== COMMERCIANTE ACCETTA PROPOSTA ==========
 @app.route('/api/accetta_proposta_unica/<id>', methods=['POST'])
