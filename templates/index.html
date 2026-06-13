@@ -164,6 +164,70 @@
             display: inline-block;
             margin-top: 10px;
         }
+        /* MODAL STYLES */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 24px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: #ff9800;
+        }
+        .modal-content input, .modal-content textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+        .modal-content textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .modal-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .btn-submit {
+            background: #ff9800;
+            color: white;
+        }
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+        }
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
         @media (max-width: 768px) {
             th, td {
                 font-size: 12px;
@@ -229,7 +293,7 @@
                             <td>
                                 <button class="btn-accept" onclick="accetta('{{ c.id }}')">✅ Accetta</button>
                                 <button class="btn-reject" onclick="rifiuta('{{ c.id }}')">❌ Rifiuta</button>
-                                <button class="btn-propose" onclick="propostaModifica('{{ c.id }}')">✏️ Proposta</button>
+                                <button class="btn-propose" onclick="apriModal('{{ c.id }}')">✏️ Proposta</button>
                             </td>
                         </tr>
                         {% endfor %}
@@ -361,7 +425,88 @@
         </div>
     </div>
 
+    <!-- MODAL PER PROPOSTA MODIFICA -->
+    <div id="propostaModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="chiudiModal()">&times;</span>
+            <h3>✏️ Proposta di modifica</h3>
+            <input type="hidden" id="consegnaId" value="">
+            <div>
+                <label>📅 Nuovo orario (opzionale)</label>
+                <input type="datetime-local" id="nuovoOrario" placeholder="es. 15:30">
+                <small style="color: #666;">Lascia vuoto se non vuoi modificare l'orario</small>
+            </div>
+            <div>
+                <label>💰 Nuovo prezzo (opzionale, €)</label>
+                <input type="number" id="nuovoPrezzo" step="0.5" placeholder="es. 15.00">
+                <small style="color: #666;">Lascia vuoto se non vuoi modificare il prezzo</small>
+            </div>
+            <div>
+                <label>📝 Motivo della modifica</label>
+                <textarea id="motivo" placeholder="Spiega il motivo della modifica..."></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="chiudiModal()">Annulla</button>
+                <button class="btn-submit" onclick="inviaProposta()">Invia Proposta</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        let currentConsegnaId = null;
+        
+        function apriModal(id) {
+            currentConsegnaId = id;
+            document.getElementById('consegnaId').value = id;
+            document.getElementById('nuovoOrario').value = '';
+            document.getElementById('nuovoPrezzo').value = '';
+            document.getElementById('motivo').value = '';
+            document.getElementById('propostaModal').style.display = 'block';
+        }
+        
+        function chiudiModal() {
+            document.getElementById('propostaModal').style.display = 'none';
+            currentConsegnaId = null;
+        }
+        
+        function inviaProposta() {
+            const nuovoOrario = document.getElementById('nuovoOrario').value;
+            const nuovoPrezzo = document.getElementById('nuovoPrezzo').value;
+            const motivo = document.getElementById('motivo').value;
+            
+            // Verifica che almeno un campo sia compilato
+            if (!nuovoOrario && !nuovoPrezzo) {
+                alert('Devi compilare almeno un campo (orario o prezzo) per fare una proposta');
+                return;
+            }
+            
+            const payload = {
+                nuovo_orario: nuovoOrario || null,
+                nuovo_prezzo: nuovoPrezzo ? parseFloat(nuovoPrezzo) : null,
+                motivo: motivo || ''
+            };
+            
+            fetch(`/api/proposta_unica/${currentConsegnaId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(data.success) {
+                    alert('✅ Proposta inviata con successo!');
+                    chiudiModal();
+                    location.reload();
+                } else {
+                    alert('❌ Errore: ' + (data.error || 'Impossibile inviare la proposta'));
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                alert('❌ Errore durante l\'invio della proposta');
+            });
+        }
+        
         function accetta(id) {
             if(confirm('Accettare questa consegna?')) {
                 fetch(`/api/accetta_consegna/${id}`, { method: 'POST' })
@@ -390,27 +535,15 @@
                 .then(data => { if(data.success) location.reload(); });
             }
         }
-
-        function propostaModifica(id) {
-            let nuovoOrario = prompt('Nuovo orario di consegna (es. 15:30):');
-            let nuovoPrezzo = prompt('Nuovo prezzo proposto (€):');
-            let motivo = prompt('Motivo della modifica (es. traffico, distanza):');
-            
-            if(motivo !== null) {
-                fetch(`/api/proposta_unica/${id}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        nuovo_orario: nuovoOrario, 
-                        nuovo_prezzo: nuovoPrezzo ? parseFloat(nuovoPrezzo) : null,
-                        motivo: motivo 
-                    })
-                })
-                .then(r => r.json())
-                .then(data => { if(data.success) location.reload(); });
+        
+        // Chiudi modal cliccando fuori
+        window.onclick = function(event) {
+            const modal = document.getElementById('propostaModal');
+            if (event.target == modal) {
+                chiudiModal();
             }
         }
-
+        
         setInterval(() => { location.reload(); }, 30000);
     </script>
 </body>
