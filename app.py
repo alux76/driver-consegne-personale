@@ -427,7 +427,17 @@ def nuova_consegna():
         orario_raw = request.form.get('orario_richiesto', '')
         orario_formattato = orario_raw.replace('T', ' ') if orario_raw else ''
         
-        supplemento_extra = float(request.form.get('supplemento_extra', 0))
+        # ========== FIX: Gestione sicura di supplemento_extra ==========
+        supplemento_raw = request.form.get('supplemento_extra', '')
+        try:
+            if supplemento_raw and supplemento_raw.strip():
+                supplemento_extra = float(supplemento_raw)
+            else:
+                supplemento_extra = 0.0
+        except ValueError:
+            print(f"⚠️ [WARNING] Valore supplemento_extra non valido: '{supplemento_raw}', usando 0")
+            supplemento_extra = 0.0
+        # ========== FINE FIX ==========
         
         if 'notturna' in request.form:
             supplemento_extra += 5.0
