@@ -317,7 +317,22 @@ def index():
 @app.route('/commerciante')
 def commerciante():
     telefono = request.args.get('telefono', '')
+    
+    # Carica i dati del commerciante dal database
+    commerciante_data = None
+    comm_nome = ''
+    comm_indirizzo_partenza = ''
+    
     if telefono:
+        commerciante = Commerciante.query.filter_by(telefono=telefono).first()
+        if commerciante:
+            comm_nome = commerciante.nome
+            comm_indirizzo_partenza = commerciante.indirizzo_partenza or ''
+            commerciante_data = commerciante.to_dict()
+            print(f"✅ [DEBUG] Dati commerciante caricati: {comm_nome}")
+        else:
+            print(f"⚠️ [DEBUG] Commerciante non trovato: {telefono}")
+        
         consegne_proposte = Consegna.query.filter(
             Consegna.comm_telefono == telefono,
             Consegna.stato.in_(['richiesta', 'attesa_conferma', 'attesa_modifica'])
@@ -341,7 +356,9 @@ def commerciante():
                          consegne_proposte=consegne_proposte,
                          consegne_accettate=consegne_accettate,
                          consegne_rifiutate=consegne_rifiutate,
-                         telefono=telefono)
+                         telefono=telefono,
+                         comm_nome=comm_nome,
+                         comm_indirizzo_partenza=comm_indirizzo_partenza)
 
 # ========== DASHBOARD ADMIN ==========
 @app.route('/admin')
@@ -413,20 +430,27 @@ def nuova_consegna():
     print(f"🔍 [DEBUG] ===== PAGINA NUOVA CONSEGNA =====")
     print(f"🔍 [DEBUG] telefono_commerciante = '{telefono_commerciante}'")
     
-    # Valori di default
+    # Valori di default - prima dal database del commerciante
+    comm_nome_default = ''
+    comm_indirizzo_partenza_default = ''
     ultimo_cliente_nome = ''
     ultimo_cliente_telefono = ''
     ultimo_cliente_indirizzo = ''
     ultimo_cliente_piano = 0
     ultimo_cliente_note = ''
-    ultimo_indirizzo_partenza = ''
     
-    # CERCA L'ULTIMO CLIENTE
+    # CARICA DATI DEL COMMERCIANTE DAL DATABASE
     if telefono_commerciante:
-        print(f"🔍 [DEBUG] Cerco l'ultimo cliente per commerciante: {telefono_commerciante}")
+        commerciante = Commerciante.query.filter_by(telefono=telefono_commerciante).first()
+        if commerciante:
+            comm_nome_default = commerciante.nome
+            comm_indirizzo_partenza_default = commerciante.indirizzo_partenza or ''
+            print(f"✅ [DEBUG] Dati commerciante caricati: {comm_nome_default}")
+        else:
+            print(f"⚠️ [DEBUG] Commerciante non trovato nel database: {telefono_commerciante}")
         
-        totale_consegne = Consegna.query.filter_by(comm_telefono=telefono_commerciante).count()
-        print(f"🔍 [DEBUG] Totale consegne trovate: {totale_consegne}")
+        # CERCA L'ULTIMO CLIENTE per auto-compilazione
+        print(f"🔍 [DEBUG] Cerco l'ultimo cliente per commerciante: {telefono_commerciante}")
         
         ultima_consegna = Consegna.query.filter_by(
             comm_telefono=telefono_commerciante
@@ -438,8 +462,9 @@ def nuova_consegna():
             ultimo_cliente_indirizzo = ultima_consegna.cliente_indirizzo_consegna
             ultimo_cliente_piano = ultima_consegna.cliente_piano
             ultimo_cliente_note = ultima_consegna.cliente_note
-            ultimo_indirizzo_partenza = ultima_consegna.comm_indirizzo_partenza
             print(f"✅ [DEBUG] Auto-compilato ULTIMO CLIENTE: '{ultimo_cliente_nome}'")
+        else:
+            print(f"ℹ️ [DEBUG] Nessuna consegna precedente per auto-compilare il cliente")
     
     if request.method == 'POST':
         print(f"📝 [DEBUG] FORM INVIATO - Creazione nuova consegna")
@@ -456,6 +481,31 @@ def nuova_consegna():
             supplemento_extra += 3.0
         if 'fuori_mano' in request.form:
             supplemento_extra += 4.0
+        
+        # Se il commerciante ha inviato nome e indirizzo, salvali nel database
+        comm_nome_inviato = request.form.get('comm_nome', '')
+        comm_indirizzo_inviato = request.form.get('comm_indirizzo_partenza', '')
+        comm_telefono_inviato = request.form.get('comm_telefono', '')
+        
+        if comm_telefono_inviato and comm_nome_inviato:
+            commerciante_esistente = Commerciante.query.filter_by(telefono=comm_telefono_inviato).first()
+            if commerciante_esistente:
+                # Aggiorna i dati se cambiati
+                if commerciante_esistente.nome != comm_nome_inviato:
+                    commerciante_esistente.nome = comm_nome_inviato
+                if commerciante_esistente.indirizzo_partenza != comm_indirizzo_inviato:
+                    commerciante_esistente.indirizzo_partenza = comm_indirizzo_inviato
+                commerciante_esistente.ultimo_accesso = datetime.now(timezone.utc)
+            else:
+                # Crea nuovo commerciante
+                nuovo_commerciante = Commerciante(
+                    telefono=comm_telefono_inviato,
+                    nome=comm_nome_inviato,
+                    indirizzo_partenza=comm_indirizzo_inviato
+                )
+                db.session.add(nuovo_commerciante)
+            db.session.commit()
+            print(f"✅ [DEBUG] Dati commerciante salvati/aggiornati")
         
         consegna = Consegna(
             comm_nome=request.form['comm_nome'],
@@ -503,12 +553,13 @@ def nuova_consegna():
     return render_template('nuova_consegna.html', 
                          orario_pre=orario_pre,
                          telefono_commerciante=telefono_commerciante,
+                         comm_nome_default=comm_nome_default,
+                         comm_indirizzo_partenza_default=comm_indirizzo_partenza_default,
                          ultimo_cliente_nome=ultimo_cliente_nome,
                          ultimo_cliente_telefono=ultimo_cliente_telefono,
                          ultimo_cliente_indirizzo=ultimo_cliente_indirizzo,
                          ultimo_cliente_piano=ultimo_cliente_piano,
-                         ultimo_cliente_note=ultimo_cliente_note,
-                         ultimo_indirizzo_partenza=ultimo_indirizzo_partenza)
+                         ultimo_cliente_note=ultimo_cliente_note)
 
 # ========== DETTAGLIO CONSEGNA ==========
 @app.route('/consegna/<id>')
