@@ -169,13 +169,13 @@
                     <tbody>
                         {% for c in consegne_richieste %}
                         <tr>
-                            <td>{{ c.id[:8] }}...</td>
-                            <td>{{ c.cliente_nome }}</td>
-                            <td>{{ c.cliente_indirizzo_consegna }}</td>
-                            <td>{{ c.cliente_piano }}</td>
-                            <td>{{ c.orario_richiesto or '--' }}</td>
-                            <td>{{ c.totale_euro }}€</td>
-                            <td><span class="status-richiesta">In attesa driver</span></td>
+                            <td>{{ c.id[:8] }}...<\/td>
+                            <td>{{ c.cliente_nome }}<\/td>
+                            <td>{{ c.cliente_indirizzo_consegna }}<\/td>
+                            <td>{{ c.cliente_piano }}<\/td>
+                            <td>{{ c.orario_richiesto or '--' }}<\/td>
+                            <td>{{ c.totale_euro }}€<\/td>
+                            <td><span class="status-richiesta">In attesa driver</span><\/td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -209,31 +209,31 @@
                     <tbody>
                         {% for c in consegne_proposte %}
                         <tr>
-                            <td>{{ c.id[:8] }}...</td>
-                            <td>{{ c.cliente_nome }}</td>
-                            <td>{{ c.cliente_indirizzo_consegna }}</td>
-                            <td>{{ c.cliente_piano }}</td>
-                            <td>{{ c.orario_richiesto or '--' }}</td>
+                            <td>{{ c.id[:8] }}...<\/td>
+                            <td>{{ c.cliente_nome }}<\/td>
+                            <td>{{ c.cliente_indirizzo_consegna }}<\/td>
+                            <td>{{ c.cliente_piano }}<\/td>
+                            <td>{{ c.orario_richiesto or '--' }}<\/td>
                             <td>
                                 {% if c.orario_proposto_driver %}
                                     <span style="color: #ff9800; font-weight: bold;">{{ c.orario_proposto_driver }}</span>
                                 {% else %}
                                     --
                                 {% endif %}
-                            </td>
-                            <td>{{ c.totale_euro }}€</td>
+                            <\/td>
+                            <td>{{ c.totale_euro }}€<\/td>
                             <td>
                                 {% if c.prezzo_proposto %}
                                     <span style="color: #ff9800; font-weight: bold;">{{ c.prezzo_proposto }}€</span>
                                 {% else %}
                                     --
                                 {% endif %}
-                            </td>
-                            <td>{{ c.motivo_proposta or '-' }}</td>
+                            <\/td>
+                            <td>{{ c.motivo_proposta or '-' }}<\/td>
                             <td>
                                 <button class="btn-accept" onclick="accettaProposta('{{ c.id }}')">✅ Accetta</button>
                                 <button class="btn-reject" onclick="rifiutaProposta('{{ c.id }}')">❌ Rifiuta</button>
-                            </td>
+                            <\/td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -264,13 +264,13 @@
                     <tbody>
                         {% for c in consegne_accettate %}
                         <tr>
-                            <td>{{ c.id[:8] }}...</td>
-                            <td>{{ c.cliente_nome }}</td>
-                            <td>{{ c.cliente_indirizzo_consegna }}</td>
-                            <td>{{ c.cliente_piano }}</td>
-                            <td>{{ c.orario_richiesto or '--' }}</td>
-                            <td>{{ c.totale_euro }}€</td>
-                            <td><span class="status-accettata">Driver in arrivo</span></td>
+                            <td>{{ c.id[:8] }}...<\/td>
+                            <td>{{ c.cliente_nome }}<\/td>
+                            <td>{{ c.cliente_indirizzo_consegna }}<\/td>
+                            <td>{{ c.cliente_piano }}<\/td>
+                            <td>{{ c.orario_richiesto or '--' }}<\/td>
+                            <td>{{ c.totale_euro }}€<\/td>
+                            <td><span class="status-accettata">Driver in arrivo</span><\/td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -299,10 +299,10 @@
                     <tbody>
                         {% for c in consegne_rifiutate %}
                         <tr>
-                            <td>{{ c.data_creazione.strftime('%d/%m/%Y %H:%M') if c.data_creazione else '-' }}</td>
-                            <td>{{ c.cliente_nome }}</td>
-                            <td>{{ c.cliente_indirizzo_consegna }}</td>
-                            <td>{{ c.totale_euro }}€</td>
+                            <td>{{ c.data_creazione.strftime('%d/%m/%Y %H:%M') if c.data_creazione else '-' }}<\/td>
+                            <td>{{ c.cliente_nome }}<\/td>
+                            <td>{{ c.cliente_indirizzo_consegna }}<\/td>
+                            <td>{{ c.totale_euro }}€<\/td>
                             <td>
                                 {% if c.stato == 'consegnata' %}
                                     <span class="status-consegnata">✅ Consegnata</span>
@@ -315,7 +315,7 @@
                                 {% else %}
                                     <span class="status-richiesta">{{ c.stato }}</span>
                                 {% endif %}
-                            </td>
+                            <\/td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -365,6 +365,9 @@
                 });
             }
         }
+        
+        // Auto-ricarica ogni 8 secondi
+        setInterval(() => { location.reload(); }, 8000);
     </script>
 </body>
 </html>
