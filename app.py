@@ -357,6 +357,12 @@ def commerciante():
     comm_nome = ''
     comm_indirizzo_partenza = ''
     
+    # Inizializza tutte le liste
+    consegne_richieste = []
+    consegne_proposte = []
+    consegne_accettate = []
+    consegne_rifiutate = []
+    
     if telefono:
         commerciante = Commerciante.query.filter_by(telefono=telefono).first()
         if commerciante:
@@ -366,26 +372,35 @@ def commerciante():
         else:
             print(f"⚠️ [DEBUG] Commerciante non trovato: {telefono}")
         
+        # RICHIESTE IN ATTESA DEL DRIVER (stato 'richiesta')
+        consegne_richieste = Consegna.query.filter(
+            Consegna.comm_telefono == telefono,
+            Consegna.stato == 'richiesta'
+        ).order_by(Consegna.data_creazione.desc()).all()
+        print(f"🔍 [DEBUG] Richieste in attesa trovate: {len(consegne_richieste)}")
+        
+        # PROPOSTE DEL DRIVER IN ATTESA DI RISPOSTA
         consegne_proposte = Consegna.query.filter(
             Consegna.comm_telefono == telefono,
             Consegna.stato.in_(['attesa_conferma', 'attesa_modifica'])
         ).order_by(Consegna.data_creazione.desc()).all()
+        print(f"🔍 [DEBUG] Proposte in attesa trovate: {len(consegne_proposte)}")
         
+        # CONSEGNE ACCETTATE (IN CORSO)
         consegne_accettate = Consegna.query.filter(
             Consegna.comm_telefono == telefono,
             Consegna.stato == 'accettata'
         ).order_by(Consegna.data_creazione.desc()).all()
+        print(f"🔍 [DEBUG] Consegne accettate trovate: {len(consegne_accettate)}")
         
+        # STORICO
         consegne_rifiutate = Consegna.query.filter(
             Consegna.comm_telefono == telefono,
             Consegna.stato.in_(['consegnata', 'rifiutata', 'cancellata', 'archiviata', 'proposta_rifiutata'])
         ).order_by(Consegna.data_creazione.desc()).all()
-    else:
-        consegne_proposte = []
-        consegne_accettate = []
-        consegne_rifiutate = []
     
     return render_template('commerciante.html', 
+                         consegne_richieste=consegne_richieste,
                          consegne_proposte=consegne_proposte,
                          consegne_accettate=consegne_accettate,
                          consegne_rifiutate=consegne_rifiutate,
