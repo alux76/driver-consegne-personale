@@ -5,167 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Porto Subito - Area Commerciante</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f0f2f5;
-            padding: 24px;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        h1 {
-            color: #1a73e8;
-            margin-bottom: 8px;
-            font-size: 28px;
-        }
-        .subtitle {
-            color: #5f6368;
-            margin-bottom: 24px;
-        }
-        .section {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 32px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-        }
-        .section h2 {
-            margin-bottom: 20px;
-            color: #202124;
-            font-size: 20px;
-            border-left: 4px solid #1a73e8;
-            padding-left: 14px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            overflow-x: auto;
-            display: block;
-        }
-        th, td {
-            padding: 12px 10px;
-            text-align: left;
-            border-bottom: 1px solid #e8e8e8;
-            vertical-align: top;
-        }
-        th {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: #5f6368;
-            font-size: 13px;
-        }
-        tr:hover {
-            background: #f8f9fa;
-        }
-        .btn-accept {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        .btn-reject {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 500;
-            margin-left: 8px;
-        }
-        .status-attesa {
-            background: #ff9800;
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            display: inline-block;
-        }
-        .status-richiesta {
-            background: #17a2b8;
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            display: inline-block;
-        }
-        .status-accettata {
-            background: #d4edda;
-            color: #155724;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            display: inline-block;
-        }
-        .status-consegnata {
-            background: #28a745;
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            display: inline-block;
-        }
-        .btn-nuova {
-            background: #1a73e8;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            text-decoration: none;
-            display: inline-block;
-            margin-bottom: 20px;
-            font-weight: 500;
-        }
-        @media (max-width: 768px) {
-            th, td {
-                font-size: 12px;
-                padding: 8px 6px;
-            }
-            .btn-accept, .btn-reject {
-                padding: 4px 8px;
-                font-size: 10px;
-            }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 24px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 { color: #1a73e8; margin-bottom: 8px; font-size: 28px; }
+        .subtitle { color: #5f6368; margin-bottom: 24px; }
+        .section { background: white; border-radius: 16px; padding: 24px; margin-bottom: 32px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+        .section h2 { margin-bottom: 20px; color: #202124; font-size: 20px; border-left: 4px solid #1a73e8; padding-left: 14px; }
+        table { width: 100%; border-collapse: collapse; overflow-x: auto; display: block; }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #e8e8e8; vertical-align: top; }
+        th { background: #f8f9fa; font-weight: 600; color: #5f6368; font-size: 13px; }
+        tr:hover { background: #f8f9fa; }
+        .btn-accept { background: #28a745; color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 500; }
+        .btn-reject { background: #dc3545; color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 500; margin-left: 8px; }
+        .status-richiesta { background: #17a2b8; color: white; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
+        .status-accettata { background: #d4edda; color: #155724; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
+        .status-consegnata { background: #28a745; color: white; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
+        .btn-nuova { background: #1a73e8; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-block; margin-bottom: 20px; font-weight: 500; }
+        @media (max-width: 768px) { th, td { font-size: 12px; padding: 8px 6px; } .btn-accept, .btn-reject { padding: 4px 8px; font-size: 10px; } }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🏪 Area Commerciante</h1>
         <div class="subtitle">Benvenuto {{ comm_nome or 'Commerciante' }}</div>
-        
         <a href="{{ url_for('nuova_consegna', telefono=telefono) }}" class="btn-nuova">➕ Nuova Consegna</a>
-        
-        <!-- RICHIESTE IN ATTESA DEL DRIVER -->
+
+        <!-- Richieste in attesa del driver -->
         <div class="section">
             <h2>⏳ Richieste in attesa del driver</h2>
             {% if consegne_richieste %}
             <div style="overflow-x: auto;">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Cliente</th>
-                            <th>Indirizzo Consegna</th>
-                            <th>Piano</th>
-                            <th>Orario richiesto</th>
-                            <th>Totale</th>
-                            <th>Stato</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>ID</th><th>Cliente</th><th>Indirizzo Consegna</th><th>Piano</th><th>Orario richiesto</th><th>Totale</th><th>Stato</th></tr></thead>
                     <tbody>
                         {% for c in consegne_richieste %}
                         <tr>
@@ -186,26 +58,13 @@
             {% endif %}
         </div>
 
-        <!-- PROPOSTE DEL DRIVER IN ATTESA -->
+        <!-- Proposte del driver in attesa -->
         <div class="section">
             <h2>✏️ Proposte del driver in attesa</h2>
             {% if consegne_proposte %}
             <div style="overflow-x: auto;">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Cliente</th>
-                            <th>Indirizzo Consegna</th>
-                            <th>Piano</th>
-                            <th>Orario richiesto</th>
-                            <th>Orario proposto</th>
-                            <th>Prezzo originale</th>
-                            <th>Prezzo proposto</th>
-                            <th>Motivo</th>
-                            <th>Azioni</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>ID</th><th>Cliente</th><th>Indirizzo Consegna</th><th>Piano</th><th>Orario richiesto</th><th>Orario proposto</th><th>Prezzo originale</th><th>Prezzo proposto</th><th>Motivo</th><th>Azioni</th></tr></thead>
                     <tbody>
                         {% for c in consegne_proposte %}
                         <tr>
@@ -214,26 +73,11 @@
                             <td>{{ c.cliente_indirizzo_consegna }}</td>
                             <td>{{ c.cliente_piano }}</td>
                             <td>{{ c.orario_richiesto or '--' }}</td>
-                            <td>
-                                {% if c.orario_proposto_driver %}
-                                    <span style="color: #ff9800; font-weight: bold;">{{ c.orario_proposto_driver }}</span>
-                                {% else %}
-                                    --
-                                {% endif %}
-                            </td>
+                            <td>{% if c.orario_proposto_driver %}<span style="color: #ff9800; font-weight: bold;">{{ c.orario_proposto_driver }}</span>{% else %}--{% endif %}</td>
                             <td>{{ c.totale_euro }}€</td>
-                            <td>
-                                {% if c.prezzo_proposto %}
-                                    <span style="color: #ff9800; font-weight: bold;">{{ c.prezzo_proposto }}€</span>
-                                {% else %}
-                                    --
-                                {% endif %}
-                            </td>
+                            <td>{% if c.prezzo_proposto %}<span style="color: #ff9800; font-weight: bold;">{{ c.prezzo_proposto }}€</span>{% else %}--{% endif %}</td>
                             <td>{{ c.motivo_proposta or '-' }}</td>
-                            <td>
-                                <button class="btn-accept" onclick="accettaProposta('{{ c.id }}')">✅ Accetta</button>
-                                <button class="btn-reject" onclick="rifiutaProposta('{{ c.id }}')">❌ Rifiuta</button>
-                            </td>
+                            <td><button class="btn-accept" onclick="accettaProposta('{{ c.id }}')">✅ Accetta</button><button class="btn-reject" onclick="rifiutaProposta('{{ c.id }}')">❌ Rifiuta</button></td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -244,23 +88,13 @@
             {% endif %}
         </div>
 
-        <!-- CONSEGNE ACCETTATE -->
+        <!-- Consegne accettate (in corso) -->
         <div class="section">
             <h2>✅ Consegne accettate (in corso)</h2>
             {% if consegne_accettate %}
             <div style="overflow-x: auto;">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Cliente</th>
-                            <th>Indirizzo Consegna</th>
-                            <th>Piano</th>
-                            <th>Orario</th>
-                            <th>Totale</th>
-                            <th>Stato</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>ID</th><th>Cliente</th><th>Indirizzo Consegna</th><th>Piano</th><th>Orario</th><th>Totale</th><th>Stato</th></tr></thead>
                     <tbody>
                         {% for c in consegne_accettate %}
                         <tr>
@@ -281,21 +115,13 @@
             {% endif %}
         </div>
 
-        <!-- STORICO -->
+        <!-- Storico -->
         <div class="section">
             <h2>📜 Storico consegne</h2>
             {% if consegne_rifiutate %}
             <div style="overflow-x: auto;">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Cliente</th>
-                            <th>Indirizzo</th>
-                            <th>Totale</th>
-                            <th>Stato</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Data</th><th>Cliente</th><th>Indirizzo</th><th>Totale</th><th>Stato</th></tr></thead>
                     <tbody>
                         {% for c in consegne_rifiutate %}
                         <tr>
@@ -303,19 +129,7 @@
                             <td>{{ c.cliente_nome }}</td>
                             <td>{{ c.cliente_indirizzo_consegna }}</td>
                             <td>{{ c.totale_euro }}€</td>
-                            <td>
-                                {% if c.stato == 'consegnata' %}
-                                    <span class="status-consegnata">✅ Consegnata</span>
-                                {% elif c.stato == 'rifiutata' %}
-                                    <span class="status-richiesta">🚫 Rifiutata dal driver</span>
-                                {% elif c.stato == 'proposta_rifiutata' %}
-                                    <span class="status-richiesta">🚫 Proposta rifiutata</span>
-                                {% elif c.stato == 'archiviata' %}
-                                    <span class="status-consegnata">📦 Archiviata</span>
-                                {% else %}
-                                    <span class="status-richiesta">{{ c.stato }}</span>
-                                {% endif %}
-                            </td>
+                            <td>{% if c.stato == 'consegnata' %}<span class="status-consegnata">✅ Consegnata</span>{% elif c.stato == 'rifiutata' %}<span class="status-richiesta">🚫 Rifiutata dal driver</span>{% elif c.stato == 'proposta_rifiutata' %}<span class="status-richiesta">🚫 Proposta rifiutata</span>{% elif c.stato == 'archiviata' %}<span class="status-consegnata">📦 Archiviata</span>{% else %}{{ c.stato }}{% endif %}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -332,41 +146,16 @@
             if(confirm('Accettare la proposta del driver?')) {
                 fetch(`/api/accetta_proposta_unica/${id}`, { method: 'POST' })
                 .then(r => r.json())
-                .then(data => { 
-                    if(data.success) {
-                        alert('✅ Proposta accettata! Il driver verrà notificato.');
-                        location.reload();
-                    } else {
-                        alert('❌ Errore durante l\'accettazione');
-                    }
-                })
-                .catch(error => {
-                    console.error('Errore:', error);
-                    alert('❌ Errore di connessione');
-                });
+                .then(data => { if(data.success) { alert('✅ Proposta accettata!'); location.reload(); } else { alert('❌ Errore'); } });
             }
         }
-
         function rifiutaProposta(id) {
-            if(confirm('Rifiutare la proposta del driver? La consegna non sarà più disponibile.')) {
+            if(confirm('Rifiutare la proposta del driver?')) {
                 fetch(`/api/rifiuta_proposta_unica/${id}`, { method: 'POST' })
                 .then(r => r.json())
-                .then(data => { 
-                    if(data.success) {
-                        alert('❌ Proposta rifiutata.');
-                        location.reload();
-                    } else {
-                        alert('❌ Errore durante il rifiuto');
-                    }
-                })
-                .catch(error => {
-                    console.error('Errore:', error);
-                    alert('❌ Errore di connessione');
-                });
+                .then(data => { if(data.success) { alert('❌ Proposta rifiutata.'); location.reload(); } else { alert('❌ Errore'); } });
             }
         }
-        
-        // Auto-ricarica ogni 8 secondi
         setInterval(() => { location.reload(); }, 8000);
     </script>
 </body>
