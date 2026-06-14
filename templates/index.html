@@ -164,7 +164,6 @@
             display: inline-block;
             margin-top: 10px;
         }
-        /* MODAL STYLES */
         .modal {
             display: none;
             position: fixed;
@@ -377,7 +376,7 @@
                             </td>
                             <td>{{ c.cliente_piano }}</td>
                             <td>{{ c.orario_richiesto or '--' }}</td>
-                            <td>{{ c.totale_euro }}€</td>
+                            <td>{{ c.totale_euro }}€<\/td>
                             <td>
                                 <button class="btn-pay" onclick="paga('{{ c.id }}')">💰 Segna pagato</button>
                             </td>
@@ -412,10 +411,17 @@
                             <td>{{ c.cliente_indirizzo_consegna }}</td>
                             <td>{{ c.totale_euro }}€</td>
                             <td>
-                                {% if c.stato == 'consegnata' %}✅ Consegnata
-                                {% elif c.stato == 'cancellata' %}❌ Cancellata
-                                {% elif c.stato == 'rifiutata' %}🚫 Rifiutata
-                                {% else %}{{ c.stato }}{% endif %}
+                                {% if c.stato == 'consegnata' %}
+                                    ✅ Consegnata
+                                {% elif c.stato == 'cancellata' %}
+                                    ❌ Cancellata
+                                {% elif c.stato == 'rifiutata' %}
+                                    🚫 Rifiutata dal driver
+                                {% elif c.stato == 'proposta_rifiutata' %}
+                                    🚫 Proposta rifiutata dal commerciante
+                                {% else %}
+                                    {{ c.stato }}
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
@@ -474,7 +480,6 @@
             const nuovoPrezzo = document.getElementById('nuovoPrezzo').value;
             const motivo = document.getElementById('motivo').value;
             
-            // Verifica che almeno un campo sia compilato
             if (!nuovoOrario && !nuovoPrezzo) {
                 alert('Devi compilare almeno un campo (orario o prezzo) per fare una proposta');
                 return;
@@ -492,7 +497,7 @@
                 body: JSON.stringify(payload)
             })
             .then(r => r.json())
-            .then(data => {
+            .then(data => { 
                 if(data.success) {
                     alert('✅ Proposta inviata con successo!');
                     chiudiModal();
@@ -536,7 +541,6 @@
             }
         }
         
-        // Chiudi modal cliccando fuori
         window.onclick = function(event) {
             const modal = document.getElementById('propostaModal');
             if (event.target == modal) {
