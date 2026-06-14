@@ -357,7 +357,6 @@ def commerciante():
     comm_nome = ''
     comm_indirizzo_partenza = ''
     
-    # Inizializza tutte le liste
     consegne_richieste = []
     consegne_proposte = []
     consegne_accettate = []
@@ -372,28 +371,24 @@ def commerciante():
         else:
             print(f"⚠️ [DEBUG] Commerciante non trovato: {telefono}")
         
-        # RICHIESTE IN ATTESA DEL DRIVER (stato 'richiesta')
         consegne_richieste = Consegna.query.filter(
             Consegna.comm_telefono == telefono,
             Consegna.stato == 'richiesta'
         ).order_by(Consegna.data_creazione.desc()).all()
         print(f"🔍 [DEBUG] Richieste in attesa trovate: {len(consegne_richieste)}")
         
-        # PROPOSTE DEL DRIVER IN ATTESA DI RISPOSTA
         consegne_proposte = Consegna.query.filter(
             Consegna.comm_telefono == telefono,
             Consegna.stato.in_(['attesa_conferma', 'attesa_modifica'])
         ).order_by(Consegna.data_creazione.desc()).all()
         print(f"🔍 [DEBUG] Proposte in attesa trovate: {len(consegne_proposte)}")
         
-        # CONSEGNE ACCETTATE (IN CORSO)
         consegne_accettate = Consegna.query.filter(
             Consegna.comm_telefono == telefono,
             Consegna.stato == 'accettata'
         ).order_by(Consegna.data_creazione.desc()).all()
         print(f"🔍 [DEBUG] Consegne accettate trovate: {len(consegne_accettate)}")
         
-        # STORICO
         consegne_rifiutate = Consegna.query.filter(
             Consegna.comm_telefono == telefono,
             Consegna.stato.in_(['consegnata', 'rifiutata', 'cancellata', 'archiviata', 'proposta_rifiutata'])
@@ -637,18 +632,24 @@ def api_accetta_consegna(id):
         return jsonify({'success': True})
     return jsonify({'success': False}), 400
 
+# ========== API RIFIUTA CONSEGNA (MODIFICATA) ==========
 @app.route('/api/rifiuta_consegna/<id>', methods=['POST'])
 def api_rifiuta_consegna(id):
     data = request.get_json()
     motivo = data.get('motivo', 'Nessun motivo')
     consegna = Consegna.query.get_or_404(id)
-    if consegna.stato == 'richiesta':
+    # Permetti il rifiuto solo se la consegna non è già stata accettata o pagata
+    if consegna.stato in ['richiesta', 'attesa_conferma', 'attesa_modifica']:
         consegna.stato = 'rifiutata'
         consegna.motivo_rifiuto = motivo
+        # Pulisci eventuali proposte in sospeso
+        consegna.orario_proposto_driver = None
+        consegna.prezzo_proposto = None
+        consegna.motivo_proposta = None
         db.session.commit()
         invia_notifica_telegram(f"❌ *CONSEGNA RIFIUTATA*\n🏪 {consegna.comm_nome}\n👤 {consegna.cliente_nome}\n📝 Motivo: {motivo}")
         return jsonify({'success': True})
-    return jsonify({'success': False}), 400
+    return jsonify({'success': False, 'error': f'Consegna in stato {consegna.stato}, non si può rifiutare'}), 400
 
 @app.route('/api/paga_consegna/<id>', methods=['POST'])
 def api_paga_consegna(id):
