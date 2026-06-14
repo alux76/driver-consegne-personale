@@ -16,7 +16,6 @@
         .section { background: white; border-radius: 16px; padding: 24px; margin-bottom: 32px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
         .section h2 { margin-bottom: 20px; color: #202124; font-size: 20px; border-left: 4px solid #1a73e8; padding-left: 14px; }
         
-        /* STILE TABELLA LEGGIBILE */
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #e8e8e8; vertical-align: middle; }
         th { background: #f8f9fa; font-weight: 600; color: #5f6368; font-size: 13px; white-space: nowrap; }
@@ -28,6 +27,7 @@
         .btn-reject { background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; margin: 2px; }
         .btn-pay { background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; margin: 2px; }
         .btn-propose { background: #ff9800; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; margin: 2px; }
+        .btn-refresh { background: #17a2b8; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; margin-bottom: 20px; display: inline-block; margin-right: 10px; }
         .btn-navigation { background: #4CAF50; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: 500; display: inline-block; margin-top: 5px; }
         
         .status-richiesta { background: #fff3cd; color: #856404; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
@@ -51,6 +51,12 @@
 <body>
     <div class="container">
         <h1>🚚 Porto Subito - Driver Dashboard</h1>
+        
+        <div>
+            <button class="btn-refresh" onclick="location.reload()">🔄 Aggiorna manualmente</button>
+            <span style="color: #5f6368; font-size: 12px;">(auto-aggiornamento ogni 30 secondi)</span>
+        </div>
+        
         <div class="stats">
             <div class="stat-card"><div class="stat-number">{{ consegne_richieste|length }}</div><div class="stat-label">Nuove consegne</div></div>
             <div class="stat-card"><div class="stat-number">{{ consegne_attesa|length }}</div><div class="stat-label">In attesa conferma</div></div>
@@ -299,12 +305,14 @@
             }
         }
         
+        // Chiudi modal cliccando fuori
         window.onclick = function(event) {
             const modal = document.getElementById('propostaModal');
             if (event.target == modal) chiudiModal();
         }
         
-        setInterval(() => { location.reload(); }, 8000);
+        // AUTO-RICARICA OGNI 30 SECONDI (30000 millisecondi)
+        setInterval(() => { location.reload(); }, 30000);
     </script>
 </body>
 </html>
