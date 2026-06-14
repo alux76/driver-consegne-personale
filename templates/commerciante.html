@@ -149,7 +149,7 @@
         
         <a href="{{ url_for('nuova_consegna', telefono=telefono) }}" class="btn-nuova">➕ Nuova Consegna</a>
         
-        <!-- RICHIESTE IN ATTESA (APPENA INVIATE, IN ATTESA CHE IL DRIVER LE PRENDA) -->
+        <!-- RICHIESTE IN ATTESA DEL DRIVER -->
         <div class="section">
             <h2>⏳ Richieste in attesa del driver</h2>
             {% if consegne_richieste %}
@@ -186,7 +186,7 @@
             {% endif %}
         </div>
 
-        <!-- PROPOSTE IN ATTESA (DA ACCETTARE O RIFIUTARE DAL COMMERCIANTE) -->
+        <!-- PROPOSTE DEL DRIVER IN ATTESA -->
         <div class="section">
             <h2>✏️ Proposte del driver in attesa</h2>
             {% if consegne_proposte %}
@@ -244,7 +244,7 @@
             {% endif %}
         </div>
 
-        <!-- CONSEGNE ACCETTATE (IN CORSO) -->
+        <!-- CONSEGNE ACCETTATE -->
         <div class="section">
             <h2>✅ Consegne accettate (in corso)</h2>
             {% if consegne_accettate %}
@@ -281,7 +281,7 @@
             {% endif %}
         </div>
 
-        <!-- STORICO CONSEGNE CONSEGNATE/RIFIUTATE -->
+        <!-- STORICO -->
         <div class="section">
             <h2>📜 Storico consegne</h2>
             {% if consegne_rifiutate %}
