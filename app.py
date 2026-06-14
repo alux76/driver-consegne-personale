@@ -5,6 +5,7 @@ import os
 import requests
 import traceback
 import csv
+import threading
 from io import StringIO
 from datetime import datetime, timezone, timedelta
 
@@ -20,7 +21,7 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
-# ========== FUNZIONE NOTIFICA TELEGRAM ==========
+# ========== FUNZIONE NOTIFICA TELEGRAM (ASINCRONA - NON BLOCCANTE) ==========
 def invia_notifica_telegram(messaggio, titolo="Driver Consegne"):
     bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
     chat_id_driver = os.getenv('TELEGRAM_CHAT_ID_DRIVER')
@@ -31,38 +32,29 @@ def invia_notifica_telegram(messaggio, titolo="Driver Consegne"):
         return
     
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    data_template = {
-        "text": f"*{titolo}*\n{messaggio}",
-        "parse_mode": "Markdown",
-        "disable_notification": False
-    }
+    testo_completo = f"*{titolo}*\n{messaggio}"
     
+    def invia(chat_id, destinatario):
+        if not chat_id:
+            return
+        try:
+            requests.post(url, data={
+                "chat_id": chat_id,
+                "text": testo_completo,
+                "parse_mode": "Markdown",
+                "disable_notification": False
+            }, timeout=5)
+            print(f"📢 Notifica inviata a {destinatario}")
+        except Exception as e:
+            print(f"⚠️ Errore notifica a {destinatario}: {e}")
+    
+    # Avvia thread separati per ogni destinatario (invio in parallelo, non bloccante)
     if chat_id_driver:
-        data = data_template.copy()
-        data["chat_id"] = chat_id_driver
-        try:
-            requests.post(url, data=data)
-            print("📢 Notifica inviata a te (driver)")
-        except:
-            pass
-    
+        threading.Thread(target=invia, args=(chat_id_driver, "driver")).start()
     if chat_id_moglie:
-        data = data_template.copy()
-        data["chat_id"] = chat_id_moglie
-        try:
-            requests.post(url, data=data)
-            print("📢 Notifica inviata a tua moglie")
-        except:
-            pass
-    
+        threading.Thread(target=invia, args=(chat_id_moglie, "moglie")).start()
     if chat_id_figlio:
-        data = data_template.copy()
-        data["chat_id"] = chat_id_figlio
-        try:
-            requests.post(url, data=data)
-            print("📢 Notifica inviata a tuo figlio")
-        except:
-            pass
+        threading.Thread(target=invia, args=(chat_id_figlio, "figlio")).start()
 
 # ========== ROUTE PER FORZARE REBUILD ==========
 @app.route('/force_rebuild')
@@ -632,17 +624,15 @@ def api_accetta_consegna(id):
         return jsonify({'success': True})
     return jsonify({'success': False}), 400
 
-# ========== API RIFIUTA CONSEGNA (MODIFICATA) ==========
+# ========== API RIFIUTA CONSEGNA ==========
 @app.route('/api/rifiuta_consegna/<id>', methods=['POST'])
 def api_rifiuta_consegna(id):
     data = request.get_json()
     motivo = data.get('motivo', 'Nessun motivo')
     consegna = Consegna.query.get_or_404(id)
-    # Permetti il rifiuto solo se la consegna non è già stata accettata o pagata
     if consegna.stato in ['richiesta', 'attesa_conferma', 'attesa_modifica']:
         consegna.stato = 'rifiutata'
         consegna.motivo_rifiuto = motivo
-        # Pulisci eventuali proposte in sospeso
         consegna.orario_proposto_driver = None
         consegna.prezzo_proposto = None
         consegna.motivo_proposta = None
