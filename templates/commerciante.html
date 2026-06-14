@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="refresh" content="10">
-    <title>Porto Subito - Commerciante</title>
+    <title>Porto Subito - Area Commerciante</title>
     <style>
         * {
             margin: 0;
@@ -14,279 +13,279 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f0f2f5;
-            padding: 20px;
+            padding: 24px;
         }
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
         h1 {
             color: #1a73e8;
-            margin-bottom: 20px;
+            margin-bottom: 8px;
+            font-size: 28px;
         }
-        .btn-nuova {
-            background: #1a73e8;
-            color: white;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 8px;
-            display: inline-block;
-            margin: 20px 0;
-        }
-        .btn-nuova:hover {
-            background: #1557b0;
+        .subtitle {
+            color: #5f6368;
+            margin-bottom: 24px;
         }
         .section {
             background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
         }
         .section h2 {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             color: #202124;
             font-size: 20px;
             border-left: 4px solid #1a73e8;
-            padding-left: 12px;
+            padding-left: 14px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
+            overflow-x: auto;
+            display: block;
         }
         th, td {
-            padding: 12px;
+            padding: 12px 10px;
             text-align: left;
-            border-bottom: 1px solid #e0e0e0;
+            border-bottom: 1px solid #e8e8e8;
             vertical-align: top;
         }
         th {
             background: #f8f9fa;
             font-weight: 600;
             color: #5f6368;
+            font-size: 13px;
         }
         tr:hover {
             background: #f8f9fa;
         }
-        .badge-richiesta {
-            background: #ffc107;
+        .btn-accept {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .btn-reject {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+        .status-attesa {
+            background: #ff9800;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .status-richiesta {
+            background: #fff3cd;
             color: #856404;
-            padding: 4px 8px;
-            border-radius: 12px;
+            padding: 5px 12px;
+            border-radius: 20px;
             font-size: 11px;
-            font-weight: bold;
+            font-weight: 600;
             display: inline-block;
         }
-        .badge-attesa {
-            background: #17a2b8;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
+        .status-accettata {
+            background: #d4edda;
+            color: #155724;
+            padding: 5px 12px;
+            border-radius: 20px;
             font-size: 11px;
-            font-weight: bold;
+            font-weight: 600;
             display: inline-block;
         }
-        .badge-accettata {
+        .status-consegnata {
             background: #28a745;
             color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
+            padding: 5px 12px;
+            border-radius: 20px;
             font-size: 11px;
-            font-weight: bold;
+            font-weight: 600;
             display: inline-block;
         }
-        .badge-consegnata {
-            background: #6c757d;
+        .btn-nuova {
+            background: #1a73e8;
             color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: bold;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
             display: inline-block;
+            margin-bottom: 20px;
+            font-weight: 500;
         }
-        .badge-rifiutata {
-            background: #dc3545;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: bold;
-            display: inline-block;
-        }
-        .btn-accetta-proposta {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            margin-right: 5px;
-        }
-        .btn-rifiuta-proposta {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .proposta-box {
-            background: #f8f9fa;
-            padding: 8px;
-            border-radius: 6px;
-            margin-top: 8px;
-            font-size: 12px;
-        }
-        .info-text {
-            color: #6c757d;
-            text-align: center;
-            padding: 20px;
+        @media (max-width: 768px) {
+            th, td {
+                font-size: 12px;
+                padding: 8px 6px;
+            }
+            .btn-accept, .btn-reject {
+                padding: 4px 8px;
+                font-size: 10px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🏪 Porto Subito - Area Commerciante</h1>
+        <h1>🏪 Area Commerciante</h1>
+        <div class="subtitle">Benvenuto {{ comm_nome or 'Commerciante' }}</div>
         
-        <a href="{{ url_for('nuova_consegna', telefono=telefono) }}" class="btn-nuova">➕ NUOVA CONSEGNA</a>
-
-        <!-- CONSEGNE IN ATTESA (RICHIESTA, ATTESA_CONFERMA, ATTESA_MODIFICA) -->
+        <a href="{{ url_for('nuova_consegna', telefono=telefono) }}" class="btn-nuova">➕ Nuova Consegna</a>
+        
+        <!-- PROPOSTE IN ATTESA (DA ACCETTARE O RIFIUTARE) -->
         <div class="section">
-            <h2>📋 Consegne in attesa</h2>
+            <h2>⏳ Proposte del driver in attesa</h2>
             {% if consegne_proposte %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Cliente</th>
-                        <th>Indirizzo</th>
-                        <th>Piano</th>
-                        <th>Orario</th>
-                        <th>Totale</th>
-                        <th>Stato</th>
-                        <th>Azioni</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for c in consegne_proposte %}
-                    <tr>
-                        <td>{{ c.id[:8] }}...</td>
-                        <td>{{ c.cliente_nome }}</td>
-                        <td>{{ c.cliente_indirizzo_consegna }}</td>
-                        <td>{{ c.cliente_piano }}</td>
-                        <td>{{ c.orario_richiesto or '--' }}</td>
-                        <td>{{ c.totale_euro }}€</td>
-                        <td>
-                            {% if c.stato == 'richiesta' %}
-                                <span class="badge-richiesta">📌 In attesa driver</span>
-                            {% elif c.stato == 'attesa_conferma' %}
-                                <span class="badge-attesa">⏳ Driver ha proposto nuovo orario</span>
-                            {% elif c.stato == 'attesa_modifica' %}
-                                <span class="badge-attesa">✏️ Driver ha proposto modifica</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if c.stato == 'attesa_conferma' %}
-                                <div class="proposta-box">
-                                    <strong>📅 Proposta orario:</strong> {{ c.orario_proposto_driver }}<br>
-                                    <button class="btn-accetta-proposta" onclick="accettaProposta('{{ c.id }}')">✅ Accetta</button>
-                                    <button class="btn-rifiuta-proposta" onclick="rifiutaProposta('{{ c.id }}')">❌ Rifiuta</button>
-                                </div>
-                            {% elif c.stato == 'attesa_modifica' %}
-                                <div class="proposta-box">
-                                    <strong>💰 Proposta prezzo:</strong> {{ c.prezzo_proposto }}€<br>
-                                    <strong>📝 Motivo:</strong> {{ c.motivo_proposta }}<br>
-                                    <button class="btn-accetta-proposta" onclick="accettaProposta('{{ c.id }}')">✅ Accetta</button>
-                                    <button class="btn-rifiuta-proposta" onclick="rifiutaProposta('{{ c.id }}')">❌ Rifiuta</button>
-                                </div>
-                            {% elif c.stato == 'richiesta' %}
-                                <span style="color: #6c757d; font-size: 12px;">In attesa driver</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Indirizzo Consegna</th>
+                            <th>Piano</th>
+                            <th>Orario richiesto</th>
+                            <th>Orario proposto</th>
+                            <th>Prezzo originale</th>
+                            <th>Prezzo proposto</th>
+                            <th>Motivo</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in consegne_proposte %}
+                        <tr>
+                            <td>{{ c.id[:8] }}...</td>
+                            <td>{{ c.cliente_nome }}</td>
+                            <td>{{ c.cliente_indirizzo_consegna }}</td>
+                            <td>{{ c.cliente_piano }}</td>
+                            <td>{{ c.orario_richiesto or '--' }}</td>
+                            <td>
+                                {% if c.orario_proposto_driver %}
+                                    <span style="color: #ff9800; font-weight: bold;">{{ c.orario_proposto_driver }}</span>
+                                {% else %}
+                                    --
+                                {% endif %}
+                            </td>
+                            <td>{{ c.totale_euro }}€</td>
+                            <td>
+                                {% if c.prezzo_proposto %}
+                                    <span style="color: #ff9800; font-weight: bold;">{{ c.prezzo_proposto }}€</span>
+                                {% else %}
+                                    --
+                                {% endif %}
+                            </td>
+                            <td>{{ c.motivo_proposta or '-' }}</td>
+                            <td>
+                                <button class="btn-accept" onclick="accettaProposta('{{ c.id }}')">✅ Accetta</button>
+                                <button class="btn-reject" onclick="rifiutaProposta('{{ c.id }}')">❌ Rifiuta</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             {% else %}
-            <div class="info-text">Nessuna consegna in attesa</div>
+            <p style="color: #5f6368; text-align: center;">Nessuna proposta in attesa</p>
             {% endif %}
         </div>
 
         <!-- CONSEGNE ACCETTATE (IN CORSO) -->
         <div class="section">
-            <h2>✅ Consegne in corso</h2>
+            <h2>✅ Consegne accettate (in corso)</h2>
             {% if consegne_accettate %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Cliente</th>
-                        <th>Indirizzo</th>
-                        <th>Piano</th>
-                        <th>Orario</th>
-                        <th>Totale</th>
-                        <th>Stato</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for c in consegne_accettate %}
-                    <tr>
-                        <td>{{ c.id[:8] }}...</td>
-                        <td>{{ c.cliente_nome }}</td>
-                        <td>{{ c.cliente_indirizzo_consegna }}</td>
-                        <td>{{ c.cliente_piano }}</td>
-                        <td>{{ c.orario_richiesto or '--' }}</td>
-                        <td>{{ c.totale_euro }}€</td>
-                        <td><span class="badge-accettata">🚚 Driver in arrivo</span></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Indirizzo Consegna</th>
+                            <th>Piano</th>
+                            <th>Orario</th>
+                            <th>Totale</th>
+                            <th>Stato</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in consegne_accettate %}
+                        <tr>
+                            <td>{{ c.id[:8] }}...</td>
+                            <td>{{ c.cliente_nome }}</td>
+                            <td>{{ c.cliente_indirizzo_consegna }}</td>
+                            <td>{{ c.cliente_piano }}</td>
+                            <td>{{ c.orario_richiesto or '--' }}</td>
+                            <td>{{ c.totale_euro }}€</td>
+                            <td><span class="status-accettata">Driver in arrivo</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             {% else %}
-            <div class="info-text">Nessuna consegna in corso</div>
+            <p style="color: #5f6368; text-align: center;">Nessuna consegna in corso</p>
             {% endif %}
         </div>
 
-        <!-- STORICO CONSEGNE -->
+        <!-- STORICO CONSEGNE CONSEGNATE/RIFIUTATE -->
         <div class="section">
             <h2>📜 Storico consegne</h2>
             {% if consegne_rifiutate %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Cliente</th>
-                        <th>Indirizzo</th>
-                        <th>Totale</th>
-                        <th>Stato</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for c in consegne_rifiutate %}
-                    <tr>
-                        <td>{{ c.data_creazione.strftime('%d/%m/%Y %H:%M') if c.data_creazione else '-' }}</td>
-                        <td>{{ c.cliente_nome }}</td>
-                        <td>{{ c.cliente_indirizzo_consegna }}</td>
-                        <td>{{ c.totale_euro }}€</td>
-                        <td>
-                            {% if c.stato == 'consegnata' %}
-                                <span class="badge-consegnata">✅ Consegnata</span>
-                            {% elif c.stato == 'rifiutata' %}
-                                <span class="badge-rifiutata">❌ Rifiutata</span>
-                            {% elif c.stato == 'cancellata' %}
-                                <span class="badge-rifiutata">🗑️ Cancellata</span>
-                            {% elif c.stato == 'archiviata' %}
-                                <span class="badge-consegnata">📦 Archiviata</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Cliente</th>
+                            <th>Indirizzo</th>
+                            <th>Totale</th>
+                            <th>Stato</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in consegne_rifiutate %}
+                        <tr>
+                            <td>{{ c.data_creazione.strftime('%d/%m/%Y %H:%M') if c.data_creazione else '-' }}</td>
+                            <td>{{ c.cliente_nome }}</td>
+                            <td>{{ c.cliente_indirizzo_consegna }}</td>
+                            <td>{{ c.totale_euro }}€</td>
+                            <td>
+                                {% if c.stato == 'consegnata' %}
+                                    <span class="status-consegnata">✅ Consegnata</span>
+                                {% elif c.stato == 'rifiutata' %}
+                                    <span class="status-richiesta">🚫 Rifiutata dal driver</span>
+                                {% elif c.stato == 'proposta_rifiutata' %}
+                                    <span class="status-richiesta">🚫 Proposta rifiutata</span>
+                                {% elif c.stato == 'archiviata' %}
+                                    <span class="status-consegnata">📦 Archiviata</span>
+                                {% else %}
+                                    <span class="status-richiesta">{{ c.stato }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             {% else %}
-            <div class="info-text">Nessuna consegna nello storico</div>
+            <p style="color: #5f6368; text-align: center;">Nessuno storico consegne</p>
             {% endif %}
         </div>
     </div>
@@ -296,15 +295,37 @@
             if(confirm('Accettare la proposta del driver?')) {
                 fetch(`/api/accetta_proposta_unica/${id}`, { method: 'POST' })
                 .then(r => r.json())
-                .then(data => { if(data.success) location.reload(); });
+                .then(data => { 
+                    if(data.success) {
+                        alert('✅ Proposta accettata! Il driver verrà notificato.');
+                        location.reload();
+                    } else {
+                        alert('❌ Errore durante l\'accettazione');
+                    }
+                })
+                .catch(error => {
+                    console.error('Errore:', error);
+                    alert('❌ Errore di connessione');
+                });
             }
         }
 
         function rifiutaProposta(id) {
-            if(confirm('Rifiutare la proposta del driver?')) {
+            if(confirm('Rifiutare la proposta del driver? La consegna non sarà più disponibile.')) {
                 fetch(`/api/rifiuta_proposta_unica/${id}`, { method: 'POST' })
                 .then(r => r.json())
-                .then(data => { if(data.success) location.reload(); });
+                .then(data => { 
+                    if(data.success) {
+                        alert('❌ Proposta rifiutata.');
+                        location.reload();
+                    } else {
+                        alert('❌ Errore durante il rifiuto');
+                    }
+                })
+                .catch(error => {
+                    console.error('Errore:', error);
+                    alert('❌ Errore di connessione');
+                });
             }
         }
     </script>
