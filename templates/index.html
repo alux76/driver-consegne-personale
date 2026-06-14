@@ -280,20 +280,20 @@
                     <tbody>
                         {% for c in consegne_richieste %}
                         <tr>
-                            <td>{{ c.id[:8] }}...<\/td>
-                            <td>{{ c.comm_nome }}<\/td>
-                            <td>{{ c.comm_telefono }}<\/td>
-                            <td>{{ c.comm_indirizzo_partenza }}<\/td>
-                            <td>{{ c.cliente_nome }}<\/td>
-                            <td>{{ c.cliente_indirizzo_consegna }}<\/td>
-                            <td>{{ c.cliente_piano }}<\/td>
-                            <td>{{ c.orario_richiesto or '--' }}<\/td>
-                            <td>{{ c.totale_euro }}€<\/td>
+                            <td>{{ c.id[:8] }}...</td>
+                            <td>{{ c.comm_nome }}</td>
+                            <td>{{ c.comm_telefono }}</td>
+                            <td>{{ c.comm_indirizzo_partenza }}</td>
+                            <td>{{ c.cliente_nome }}</td>
+                            <td>{{ c.cliente_indirizzo_consegna }}</td>
+                            <td>{{ c.cliente_piano }}</td>
+                            <td>{{ c.orario_richiesto or '--' }}</td>
+                            <td>{{ c.totale_euro }}€</td>
                             <td>
                                 <button class="btn-accept" onclick="accetta('{{ c.id }}')">✅ Accetta</button>
                                 <button class="btn-reject" onclick="rifiuta('{{ c.id }}')">❌ Rifiuta</button>
                                 <button class="btn-propose" onclick="apriModal('{{ c.id }}')">✏️ Proposta</button>
-                            <\/td>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -322,15 +322,15 @@
                     <tbody>
                         {% for c in consegne_attesa %}
                         <tr>
-                            <td>{{ c.id[:8] }}...<\/td>
-                            <td>{{ c.comm_nome }}<\/td>
-                            <td>{{ c.comm_telefono }}<\/td>
-                            <td>{{ c.comm_indirizzo_partenza }}<\/td>
-                            <td>{{ c.cliente_nome }}<\/td>
-                            <td>{{ c.cliente_indirizzo_consegna }}<\/td>
-                            <td>{{ c.orario_proposto_driver or c.orario_richiesto }}<\/td>
-                            <td>{{ c.prezzo_proposto or c.totale_euro }}€<\/td>
-                            <td>{{ c.motivo_proposta or '-' }}<\/td>
+                            <td>{{ c.id[:8] }}...</td>
+                            <td>{{ c.comm_nome }}</td>
+                            <td>{{ c.comm_telefono }}</td>
+                            <td>{{ c.comm_indirizzo_partenza }}</td>
+                            <td>{{ c.cliente_nome }}</td>
+                            <td>{{ c.cliente_indirizzo_consegna }}</td>
+                            <td>{{ c.orario_proposto_driver or c.orario_richiesto }}</td>
+                            <td>{{ c.prezzo_proposto or c.totale_euro }}€</td>
+                            <td>{{ c.motivo_proposta or '-' }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -360,11 +360,11 @@
                     <tbody>
                         {% for c in consegne_accettate %}
                         <tr>
-                            <td>{{ c.id[:8] }}...<\/td>
-                            <td>{{ c.comm_nome }}<\/td>
-                            <td>{{ c.comm_telefono }}<\/td>
-                            <td>{{ c.comm_indirizzo_partenza }}<\/td>
-                            <td>{{ c.cliente_nome }}<\/td>
+                            <td>{{ c.id[:8] }}...</td>
+                            <td>{{ c.comm_nome }}</td>
+                            <td>{{ c.comm_telefono }}</td>
+                            <td>{{ c.comm_indirizzo_partenza }}</td>
+                            <td>{{ c.cliente_nome }}</td>
                             <td>
                                 {{ c.cliente_indirizzo_consegna }}
                                 <br>
@@ -373,13 +373,13 @@
                                    class="btn-navigation">
                                    🗺️ APRI NAVIGAZIONE
                                 </a>
-                            <\/td>
-                            <td>{{ c.cliente_piano }}<\/td>
-                            <td>{{ c.orario_richiesto or '--' }}<\/td>
-                            <td>{{ c.totale_euro }}€<\/td>
+                            </td>
+                            <td>{{ c.cliente_piano }}</td>
+                            <td>{{ c.orario_richiesto or '--' }}</td>
+                            <td>{{ c.totale_euro }}€</td>
                             <td>
                                 <button class="btn-pay" onclick="paga('{{ c.id }}')">💰 Segna pagato</button>
-                            <\/td>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -405,11 +405,11 @@
                     <tbody>
                         {% for c in storico %}
                         <tr>
-                            <td>{{ c.data_creazione.strftime('%d/%m/%Y %H:%M') if c.data_creazione else '-' }}<\/td>
-                            <td>{{ c.comm_nome }}<\/td>
-                            <td>{{ c.cliente_nome }}<\/td>
-                            <td>{{ c.cliente_indirizzo_consegna }}<\/td>
-                            <td>{{ c.totale_euro }}€<\/td>
+                            <td>{{ c.data_creazione.strftime('%d/%m/%Y %H:%M') if c.data_creazione else '-' }}</td>
+                            <td>{{ c.comm_nome }}</td>
+                            <td>{{ c.cliente_nome }}</td>
+                            <td>{{ c.cliente_indirizzo_consegna }}</td>
+                            <td>{{ c.totale_euro }}€</td>
                             <td>
                                 {% if c.stato == 'consegnata' %}
                                     ✅ Consegnata
@@ -422,7 +422,7 @@
                                 {% else %}
                                     {{ c.stato }}
                                 {% endif %}
-                            <\/td>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
