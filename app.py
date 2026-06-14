@@ -195,7 +195,7 @@ def api_elimina_consegna(id):
     db.session.commit()
     return jsonify({'success': True})
 
-# ========== PROPOSTA UNICA (MODIFICATA PER GESTIRE ENTRAMBI I CAMPI) ==========
+# ========== PROPOSTA UNICA ==========
 @app.route('/api/proposta_unica/<id>', methods=['POST'])
 def api_proposta_unica(id):
     data = request.get_json()
@@ -207,13 +207,11 @@ def api_proposta_unica(id):
     if consegna.stato == 'richiesta':
         modifiche_apportate = False
         
-        # Gestione orario
         if nuovo_orario and nuovo_orario.strip():
             consegna.orario_proposto_driver = nuovo_orario
             modifiche_apportate = True
             print(f"📝 Proposta orario: {nuovo_orario}")
         
-        # Gestione prezzo
         if nuovo_prezzo is not None and str(nuovo_prezzo).strip():
             try:
                 prezzo_float = float(nuovo_prezzo)
@@ -225,9 +223,8 @@ def api_proposta_unica(id):
                 print(f"⚠️ Prezzo non valido: {nuovo_prezzo}")
         
         if modifiche_apportate:
-            # Imposta lo stato in base a cosa è stato proposto
             if nuovo_orario and nuovo_prezzo:
-                consegna.stato = 'attesa_modifica'  # Entrambi
+                consegna.stato = 'attesa_modifica'
                 invia_notifica_telegram(
                     f"✏️ *PROPOSTA DI MODIFICA* (orario + prezzo)\n"
                     f"🏪 {consegna.comm_nome}\n"
@@ -237,7 +234,7 @@ def api_proposta_unica(id):
                     f"📝 Motivo: {motivo or 'Nessun motivo specificato'}"
                 )
             elif nuovo_orario and not nuovo_prezzo:
-                consegna.stato = 'attesa_conferma'  # Solo orario
+                consegna.stato = 'attesa_conferma'
                 invia_notifica_telegram(
                     f"✏️ *PROPOSTA DI MODIFICA ORARIO*\n"
                     f"🏪 {consegna.comm_nome}\n"
@@ -246,7 +243,7 @@ def api_proposta_unica(id):
                     f"📝 Motivo: {motivo or 'Nessun motivo specificato'}"
                 )
             elif not nuovo_orario and nuovo_prezzo:
-                consegna.stato = 'attesa_modifica'  # Solo prezzo
+                consegna.stato = 'attesa_modifica'
                 invia_notifica_telegram(
                     f"✏️ *PROPOSTA DI MODIFICA PREZZO*\n"
                     f"🏪 {consegna.comm_nome}\n"
@@ -289,21 +286,23 @@ def api_accetta_proposta_unica(id):
         return jsonify({'success': True})
     return jsonify({'success': False}), 400
 
+# ========== COMMERCIANTE RIFIUTA PROPOSTA ==========
 @app.route('/api/rifiuta_proposta_unica/<id>', methods=['POST'])
 def api_rifiuta_proposta_unica(id):
     consegna = Consegna.query.get_or_404(id)
     if consegna.stato in ['attesa_conferma', 'attesa_modifica']:
-        consegna.stato = 'richiesta'
+        consegna.stato = 'proposta_rifiutata'
         consegna.orario_proposto_driver = None
         consegna.prezzo_proposto = None
         consegna.motivo_proposta = None
         db.session.commit()
         
         invia_notifica_telegram(
-            f"❌ *PROPOSTA RIFIUTATA*\n"
+            f"❌ *PROPOSTA RIFIUTATA DAL COMMERCIANTE*\n"
             f"🏪 {consegna.comm_nome}\n"
             f"👤 {consegna.cliente_nome}\n"
-            f"Il commerciante ha rifiutato la proposta"
+            f"Il commerciante ha rifiutato la tua proposta.\n"
+            f"La consegna non è più disponibile."
         )
         return jsonify({'success': True})
     return jsonify({'success': False}), 400
@@ -340,7 +339,9 @@ def index():
     consegne_richieste = Consegna.query.filter_by(stato='richiesta').order_by(Consegna.data_creazione.desc()).all()
     consegne_attesa = Consegna.query.filter_by(stato='attesa_conferma').order_by(Consegna.data_creazione.desc()).all()
     consegne_accettate = Consegna.query.filter_by(stato='accettata').order_by(Consegna.accettata_il.desc()).all()
-    storico = Consegna.query.filter(Consegna.stato.in_(['consegnata', 'cancellata', 'rifiutata'])).order_by(Consegna.data_creazione.desc()).limit(20).all()
+    storico = Consegna.query.filter(
+        Consegna.stato.in_(['consegnata', 'cancellata', 'rifiutata', 'proposta_rifiutata'])
+    ).order_by(Consegna.data_creazione.desc()).limit(20).all()
     
     return render_template('index.html', 
                          consegne_richieste=consegne_richieste,
@@ -353,7 +354,6 @@ def index():
 def commerciante():
     telefono = request.args.get('telefono', '')
     
-    # Carica i dati del commerciante dal database
     comm_nome = ''
     comm_indirizzo_partenza = ''
     
@@ -368,7 +368,7 @@ def commerciante():
         
         consegne_proposte = Consegna.query.filter(
             Consegna.comm_telefono == telefono,
-            Consegna.stato.in_(['richiesta', 'attesa_conferma', 'attesa_modifica'])
+            Consegna.stato.in_(['attesa_conferma', 'attesa_modifica'])
         ).order_by(Consegna.data_creazione.desc()).all()
         
         consegne_accettate = Consegna.query.filter(
@@ -378,7 +378,7 @@ def commerciante():
         
         consegne_rifiutate = Consegna.query.filter(
             Consegna.comm_telefono == telefono,
-            Consegna.stato.in_(['consegnata', 'rifiutata', 'cancellata', 'archiviata'])
+            Consegna.stato.in_(['consegnata', 'rifiutata', 'cancellata', 'archiviata', 'proposta_rifiutata'])
         ).order_by(Consegna.data_creazione.desc()).all()
     else:
         consegne_proposte = []
@@ -399,7 +399,7 @@ def admin():
     consegne_richieste = Consegna.query.filter_by(stato='richiesta').order_by(Consegna.data_creazione.desc()).all()
     consegne_attesa = Consegna.query.filter_by(stato='attesa_conferma').order_by(Consegna.data_creazione.desc()).all()
     consegne_accettate = Consegna.query.filter_by(stato='accettata').order_by(Consegna.accettata_il.desc()).all()
-    storico = Consegna.query.filter(Consegna.stato.in_(['consegnata', 'cancellata', 'rifiutata', 'archiviata'])).order_by(Consegna.data_creazione.desc()).all()
+    storico = Consegna.query.filter(Consegna.stato.in_(['consegnata', 'cancellata', 'rifiutata', 'archiviata', 'proposta_rifiutata'])).order_by(Consegna.data_creazione.desc()).all()
     
     return render_template('admin.html', 
                          consegne_richieste=consegne_richieste,
@@ -437,7 +437,6 @@ def statistiche():
 
 # ========== FUNZIONE DI SERVIZIO PER CONVERSIONE SICURA ==========
 def safe_int(value, default=0):
-    """Converte in int in modo sicuro, gestendo stringhe vuote e None"""
     if value is None or value == '':
         return default
     try:
@@ -446,7 +445,6 @@ def safe_int(value, default=0):
         return default
 
 def safe_float(value, default=0.0):
-    """Converte in float in modo sicuro, gestendo stringhe vuote e None"""
     if value is None or value == '':
         return default
     try:
@@ -463,7 +461,6 @@ def nuova_consegna():
     print(f"🔍 [DEBUG] ===== PAGINA NUOVA CONSEGNA =====")
     print(f"🔍 [DEBUG] telefono_commerciante = '{telefono_commerciante}'")
     
-    # Valori di default - prima dal database del commerciante
     comm_nome_default = ''
     comm_indirizzo_partenza_default = ''
     ultimo_cliente_nome = ''
@@ -472,7 +469,6 @@ def nuova_consegna():
     ultimo_cliente_piano = 0
     ultimo_cliente_note = ''
     
-    # CARICA DATI DEL COMMERCIANTE DAL DATABASE
     if telefono_commerciante:
         commerciante = Commerciante.query.filter_by(telefono=telefono_commerciante).first()
         if commerciante:
@@ -482,7 +478,6 @@ def nuova_consegna():
         else:
             print(f"⚠️ [DEBUG] Commerciante non trovato nel database: {telefono_commerciante}")
         
-        # CERCA L'ULTIMO CLIENTE per auto-compilazione
         print(f"🔍 [DEBUG] Cerco l'ultimo cliente per commerciante: {telefono_commerciante}")
         
         ultima_consegna = Consegna.query.filter_by(
@@ -504,7 +499,6 @@ def nuova_consegna():
         orario_raw = request.form.get('orario_richiesto', '')
         orario_formattato = orario_raw.replace('T', ' ') if orario_raw else ''
         
-        # Conversioni sicure per tutti i campi numerici
         supplemento_extra = safe_float(request.form.get('supplemento_extra', ''))
         cliente_piano = safe_int(request.form.get('cliente_piano', ''))
         
@@ -515,7 +509,6 @@ def nuova_consegna():
         if 'fuori_mano' in request.form:
             supplemento_extra += 4.0
         
-        # SALVA/AGGIORNA I DATI DEL COMMERCIANTE NEL DATABASE
         comm_nome_inviato = request.form.get('comm_nome', '')
         comm_indirizzo_inviato = request.form.get('comm_indirizzo_partenza', '')
         comm_telefono_inviato = request.form.get('comm_telefono', '')
@@ -523,7 +516,6 @@ def nuova_consegna():
         if comm_telefono_inviato and comm_nome_inviato:
             commerciante_esistente = Commerciante.query.filter_by(telefono=comm_telefono_inviato).first()
             if commerciante_esistente:
-                # Aggiorna i dati se cambiati
                 if commerciante_esistente.nome != comm_nome_inviato:
                     commerciante_esistente.nome = comm_nome_inviato
                 if commerciante_esistente.indirizzo_partenza != comm_indirizzo_inviato:
@@ -531,7 +523,6 @@ def nuova_consegna():
                 commerciante_esistente.ultimo_accesso = datetime.now(timezone.utc)
                 print(f"✅ [DEBUG] Dati commerciante aggiornati: {comm_nome_inviato}")
             else:
-                # Crea nuovo commerciante
                 nuovo_commerciante = Commerciante(
                     telefono=comm_telefono_inviato,
                     nome=comm_nome_inviato,
