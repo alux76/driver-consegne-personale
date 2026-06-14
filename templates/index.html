@@ -54,7 +54,7 @@
         
         <div>
             <button class="btn-refresh" onclick="location.reload()">🔄 Aggiorna manualmente</button>
-            <span style="color: #5f6368; font-size: 12px;">(auto-aggiornamento ogni 30 secondi)</span>
+            <span style="color: #5f6368; font-size: 12px;">(auto-aggiornamento ogni 2 minuti)</span>
         </div>
         
         <div class="stats">
@@ -311,8 +311,8 @@
             if (event.target == modal) chiudiModal();
         }
         
-        // AUTO-RICARICA OGNI 30 SECONDI (30000 millisecondi)
-        setInterval(() => { location.reload(); }, 30000);
+        // AUTO-RICARICA OGNI 120 SECONDI (2 MINUTI)
+        setInterval(() => { location.reload(); }, 120000);
     </script>
 </body>
 </html>
