@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, Response
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, Response, get_flashed_messages
 from models import db, Consegna, Cliente, Commerciante
 from dotenv import load_dotenv
 import os
@@ -344,6 +344,9 @@ def index():
 # ========== DASHBOARD COMMERCIANTE ==========
 @app.route('/commerciante')
 def commerciante():
+    # Pulisci i flash message vecchi all'accesso della pagina
+    get_flashed_messages()
+    
     telefono = request.args.get('telefono', '')
     
     comm_nome = ''
